@@ -1,0 +1,27 @@
+name: researcher
+description: Deep research and analysis workflow
+version: "1.0.0"
+skills:
+  - research
+  - research-deep
+  - research-add-fields
+  - research-add-items
+  - research-report
+  - agent-reach
+  - web2-recon
+profiles: []
+stages:
+  discovery:
+    - research
+    - agent-reach
+    - web2-recon
+  deep-dive:
+    - research-deep
+    - research-add-fields
+    - research-add-items
+  synthesis:
+    - research-report
+    - document-generate
+metadata:
+  tags: ["research", "analysis", "intelligence"]
+  author: "QuirkSphere"

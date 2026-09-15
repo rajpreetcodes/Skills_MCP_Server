@@ -1,0 +1,37 @@
+name: product-builder
+description: Build a complete digital product from research to launch
+version: "1.0.0"
+skills:
+  - research
+  - ui-ux
+  - design
+  - software
+  - testing
+profiles: []
+stages:
+  research:
+    - research
+    - research-deep
+    - research-report
+  design:
+    - ui-ux-pro-max
+    - choosing-design-styles
+    - impeccable
+    - design-consultation
+  architecture:
+    - plan-eng-review
+    - improve-codebase-architecture
+    - system-design
+  implementation:
+    - software-development
+    - ponytail
+    - tdd
+    - test-driven-development
+  validation:
+    - qa
+    - review
+    - investigate
+    - bug-detector
+metadata:
+  tags: ["product", "full-stack", "end-to-end"]
+  author: "QuirkSphere"

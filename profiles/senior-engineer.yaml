@@ -1,0 +1,38 @@
+name: senior-engineer
+description: Senior software engineering workflow with emphasis on quality and architecture
+version: "1.0.0"
+skills:
+  - ponytail
+  - architecture
+  - debugging
+  - code-review
+  - testing
+  - security
+profiles: []
+stages:
+  analysis:
+    - investigate
+    - diagnose
+    - systematic-debugging
+    - bug-detector
+  architecture:
+    - plan-eng-review
+    - improve-codebase-architecture
+    - plan-ceo-review
+  implementation:
+    - ponytail
+    - tdd
+    - test-driven-development
+  quality:
+    - review
+    - receiving-code-review
+    - requesting-code-review
+    - verification-before-completion
+  security:
+    - cso
+    - security-arsenal
+    - web2-vuln-classes
+    - web3-audit
+metadata:
+  tags: ["engineering", "senior", "quality", "security"]
+  author: "QuirkSphere"

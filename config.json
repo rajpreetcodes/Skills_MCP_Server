@@ -1,0 +1,9 @@
+{
+  "skill_root": "C:\\Users\\rajpr\\.claude\\skills",
+  "profile_dir": "profiles",
+  "transport": "stdio",
+  "host": "0.0.0.0",
+  "port": 8080,
+  "log_level": "INFO",
+  "auth_token": null
+}

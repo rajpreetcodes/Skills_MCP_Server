@@ -1,0 +1,33 @@
+name: designer
+description: UI/UX design and visual design workflow
+version: "1.0.0"
+skills:
+  - ui-ux-pro-max
+  - impeccable
+  - choosing-design-styles
+  - choosing-website-animations
+  - design-consultation
+  - design-review
+  - design-shotgun
+  - design-html
+  - taste-skill
+profiles: []
+stages:
+  discovery:
+    - choosing-design-styles
+    - design-consultation
+    - design-shotgun
+  design:
+    - ui-ux-pro-max
+    - impeccable
+    - taste-skill
+    - choosing-website-animations
+  implementation:
+    - design-html
+    - design-review
+  handoff:
+    - design-md
+    - document-generate
+metadata:
+  tags: ["design", "ui", "ux", "visual"]
+  author: "QuirkSphere"
