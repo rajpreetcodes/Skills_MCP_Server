@@ -34,79 +34,117 @@ An MCP (Model Context Protocol) server that exposes your Claude Skills library a
 - **Secure**: Optional Bearer token auth for remote deployments
 - **No Duplication**: Reads your existing skills in-place; no copying required
 
-## Quick Start
+## Configuring Your Skills Directory
 
-### 1. Local Development (STDIO)
+You can point the server to any local directory containing skills:
 
-```bash
-cd L:\My Innovations\Skills_MCP_Server
-pip install -e .
-python -m src.server --transport stdio
-```
+- **Windows**: `C:\Users\<username>\.claude\skills` or `D:\projects\my-skills`
+- **macOS**: `/Users/<username>/.claude/skills`
+- **Linux**: `/home/<username>/.claude/skills`
 
-**OpenCode Configuration** (`~/.opencode/config.json` or project `.opencode/config.json`):
+There are three ways to configure your skills path:
 
-```json
-{
-  "mcp": {
-    "servers": {
-      "skills": {
-        "command": "python",
-        "args": ["-m", "src.server", "--transport", "stdio"],
-        "cwd": "L:/My Innovations/Skills_MCP_Server"
-      }
-    }
-  }
-}
-```
+1. **Command Line Flag** (simplest):
+   ```bash
+   python -m src.server --skill-root "path/to/your/skills"
+   ```
 
-**Claude Desktop Configuration** (`%APPDATA%\Claude\claude_desktop_config.json`):
+2. **Configuration File** (`config.json`):
+   ```json
+   {
+     "skill_root": "/path/to/your/skills",
+     "profile_dir": "profiles",
+     "port": 8080
+   }
+   ```
+
+3. **Environment Variable** (`.env` or shell):
+   ```bash
+   export SKILL_ROOT="/path/to/your/skills"
+   ```
+
+---
+
+## Client Setup
+
+### 1. Claude Desktop (Local STDIO)
+
+Add to `%APPDATA%\Claude\claude_desktop_config.json` (Windows) or `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS):
 
 ```json
 {
   "mcpServers": {
     "skills": {
       "command": "python",
-      "args": ["-m", "src.server", "--transport", "stdio"],
-      "cwd": "L:/My Innovations/Skills_MCP_Server"
+      "args": [
+        "-m", "src.server",
+        "--transport", "stdio",
+        "--skill-root", "C:\\Users\\<username>\\.claude\\skills"
+      ],
+      "cwd": "L:\\My Innovations\\Skills_MCP_Server"
     }
   }
 }
 ```
 
-### 2. Remote Deployment for Tasklet (HTTP+SSE)
+Restart Claude Desktop. All 10 skills tools are immediately available in chats.
 
-**Option A: Docker (Recommended)**
+---
 
-```bash
-# Build
-docker build -t skills-mcp-server L:\My Innovations\Skills_MCP_Server
+### 2. Claude Browser Version (Claude.ai Web)
 
-# Run (mount your skills directory)
-docker run -d \
-  --name skills-mcp \
-  -p 8000:8000 \
-  -v "C:\Users\rajpr\.claude\skills:/skills:ro" \
-  -e SKILL_ROOT=/skills \
-  -e AUTH_TOKEN="your-secure-token-here" \
-  -e TRANSPORT=http \
-  skills-mcp-server
-```
+Because Claude.ai runs in the cloud, it cannot directly reach `localhost:8080` on your physical workstation. Connect it via a secure SSE tunnel:
 
-### 2. Remote / HTTP Mode (HTTP+SSE)
-
+**Step 1: Start the HTTP server pointing to your skills folder**
 ```bash
 cd L:\My Innovations\Skills_MCP_Server
-python -m src.server --transport http --host 0.0.0.0 --port 8080
+python -m src.server --transport http --host 0.0.0.0 --port 8080 --skill-root "C:\Users\<username>\.claude\skills"
 ```
 
-**Connection Details:**
+**Step 2: Expose the server to the internet using an SSH tunnel**
+Run in a separate terminal:
+```bash
+ssh -R 80:localhost:8080 tinyfi.sh
+```
+*(Alternatively, use `ngrok http 8080` or Cloudflare Tunnel).*
+This outputs a public URL: `https://<tunnel-id>.tinyfi.sh`.
 
-- **Transport**: SSE (Server-Sent Events)
-- **SSE URL**: `http://localhost:8080/mcp/sse` (or `http://localhost:8080/mcp/sse?token=your-token` if auth enabled)
-- **Messages Endpoint**: `/mcp/messages` (advertised dynamically via SSE)
-- **Health Check**: `http://localhost:8080/health`
-- **Headers**: `Authorization: Bearer <AUTH_TOKEN>` (optional)
+**Step 3: Connect inside Claude.ai (Browser)**
+1. Open [Claude.ai](https://claude.ai) in your browser.
+2. Go to **Settings -> Integrations / Connectors** (or MCP settings).
+3. Click **Add Remote MCP Server**.
+4. Fill in the connection settings:
+   - **Name**: `my-skills`
+   - **Transport**: `SSE`
+   - **URL**: `https://<tunnel-id>.tinyfi.sh/mcp/sse`
+   - **Authorization Header**: `Bearer <AUTH_TOKEN>` (if auth is enabled)
+5. Save. Claude in your web browser now has direct access to your local skills library.
+
+---
+
+### 3. Cursor & Windsurf
+
+In Cursor Settings -> Features -> MCP -> Add New MCP Server:
+- **Type**: `command`
+- **Command**: `python -m src.server --transport stdio --skill-root "C:\path\to\skills"`
+- **Working Directory**: `L:\My Innovations\Skills_MCP_Server`
+
+---
+
+### 4. Antigravity IDE / Gemini IDE
+
+Add to your workspace `mcp_config.json`:
+```json
+{
+  "mcpServers": {
+    "skills": {
+      "command": "python",
+      "args": ["-m", "src.server", "--transport", "stdio", "--skill-root", "C:\\path\\to\\skills"],
+      "cwd": "L:\\My Innovations\\Skills_MCP_Server"
+    }
+  }
+}
+```
 
 ## MCP Capabilities
 

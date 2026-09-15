@@ -147,7 +147,7 @@ def load_config(config_path: Optional[Path] = None) -> dict:
         "profile_dir": "profiles",
         "transport": "stdio",
         "host": "0.0.0.0",
-        "port": 8000,
+        "port": 8080,
         "log_level": "INFO",
         "auth_token": None
     }
@@ -188,12 +188,15 @@ async def main():
 
     parser = argparse.ArgumentParser(description="Skills MCP Server")
     parser.add_argument("--config", type=Path, help="Path to config file")
+    parser.add_argument("--skill-root", type=Path, help="Path to your custom skills directory")
     parser.add_argument("--transport", choices=["stdio", "http"], default=None, help="Transport mode")
     parser.add_argument("--host", default=None, help="HTTP host")
     parser.add_argument("--port", type=int, default=None, help="HTTP port")
     args = parser.parse_args()
 
     config = load_config(args.config)
+    if args.skill_root:
+        config["skill_root"] = str(args.skill_root)
     if args.transport:
         config["transport"] = args.transport
     if args.host:
