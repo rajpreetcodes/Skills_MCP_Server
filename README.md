@@ -2,12 +2,24 @@
 
 An MCP (Model Context Protocol) server that exposes your Claude Skills library as a discoverable, searchable, and composable skill registry. Designed for seamless integration with **Tasklet** (via HTTP/SSE) and local MCP hosts like **OpenCode**, **Claude Desktop**, and **Cursor** (via STDIO).
 
+## Background and Motivation
+
+AI agent environments like Tasklet require configuring custom skills and prompts manually through their UI, typically one skill at a time. When managing a rich personal library of 100 to 200+ specialized engineering skills, adding them individually by hand is tedious, slow, and impossible to maintain as instructions evolve.
+
+Furthermore, dumping dozens of skills directly into an agent's static context or system prompt wastes thousands of tokens per turn and causes prompt dilution.
+
+This MCP server was built to eliminate that bottleneck:
+
+1. **Zero Manual Copy-Pasting**: Point the server at your existing local skills folder and all skills are immediately available.
+2. **On-Demand Retrieval**: Models dynamically search (`search_skills`) and load (`get_skill`) only the relevant skill instructions when a task calls for them, keeping context windows lean.
+3. **Universal Portability**: By implementing the standard Model Context Protocol (MCP SDK 2.2.0), the same local skills library can be accessed across Tasklet, Claude Desktop, Claude.ai Web, Cursor, Windsurf, and CLI agents.
+
 ## Architecture Overview
 
 ```
 ┌─────────────────────────────────────────────────────────────────────┐
                         SKILL SOURCE (Canonical)
-                    C:\Users\rajpr\.claude\skills
+                 Local Skills Directory (~/.claude/skills)
                               │
               ┌───────────────┴───────────────┐
               ▼                               ▼
