@@ -1,7 +1,7 @@
 """MCP Tools for the skills server."""
 import json
 from typing import List, Optional, Dict, Any, Union
-from mcp.types import Tool, TextContent, CallToolResult
+from mcp.types import Tool, TextContent, CallToolResult, ToolAnnotations
 from .registry import SkillRegistry
 from .profile_loader import ProfileLoader
 from .models import SkillMetadata, SearchResult
@@ -27,7 +27,13 @@ class SkillsTools:
                         "limit": {"type": "integer", "default": 50, "maximum": 200, "description": "Maximum results to return"},
                         "offset": {"type": "integer", "default": 0, "description": "Pagination offset"}
                     }
-                }
+                },
+                annotations=ToolAnnotations(
+                    readOnlyHint=True,
+                    destructiveHint=False,
+                    idempotentHint=True,
+                    openWorldHint=False
+                )
             ),
             Tool(
                 name="search_skills",
@@ -40,7 +46,13 @@ class SkillsTools:
                         "offset": {"type": "integer", "default": 0, "description": "Pagination offset"}
                     },
                     "required": ["query"]
-                }
+                },
+                annotations=ToolAnnotations(
+                    readOnlyHint=True,
+                    destructiveHint=False,
+                    idempotentHint=True,
+                    openWorldHint=False
+                )
             ),
             Tool(
                 name="get_skill",
@@ -52,7 +64,13 @@ class SkillsTools:
                         "include_supporting": {"type": "boolean", "default": False, "description": "Include supporting reference files"}
                     },
                     "required": ["skill_id"]
-                }
+                },
+                annotations=ToolAnnotations(
+                    readOnlyHint=True,
+                    destructiveHint=False,
+                    idempotentHint=True,
+                    openWorldHint=False
+                )
             ),
             Tool(
                 name="get_skills",
@@ -64,7 +82,13 @@ class SkillsTools:
                         "include_supporting": {"type": "boolean", "default": False, "description": "Include supporting reference files"}
                     },
                     "required": ["skill_ids"]
-                }
+                },
+                annotations=ToolAnnotations(
+                    readOnlyHint=True,
+                    destructiveHint=False,
+                    idempotentHint=True,
+                    openWorldHint=False
+                )
             ),
             Tool(
                 name="list_profiles",
@@ -72,7 +96,13 @@ class SkillsTools:
                 inputSchema={
                     "type": "object",
                     "properties": {}
-                }
+                },
+                annotations=ToolAnnotations(
+                    readOnlyHint=True,
+                    destructiveHint=False,
+                    idempotentHint=True,
+                    openWorldHint=False
+                )
             ),
             Tool(
                 name="get_profile",
@@ -83,7 +113,13 @@ class SkillsTools:
                         "name": {"type": "string", "description": "Profile name (e.g., 'product-builder', 'senior-engineer')"}
                     },
                     "required": ["name"]
-                }
+                },
+                annotations=ToolAnnotations(
+                    readOnlyHint=True,
+                    destructiveHint=False,
+                    idempotentHint=True,
+                    openWorldHint=False
+                )
             ),
             Tool(
                 name="resolve_profile",
@@ -95,7 +131,13 @@ class SkillsTools:
                         "stage": {"type": "string", "description": "Optional: resolve only a specific stage (e.g., 'research', 'design', 'implementation')"}
                     },
                     "required": ["name"]
-                }
+                },
+                annotations=ToolAnnotations(
+                    readOnlyHint=True,
+                    destructiveHint=False,
+                    idempotentHint=True,
+                    openWorldHint=False
+                )
             ),
             Tool(
                 name="refresh_skills",
@@ -103,7 +145,13 @@ class SkillsTools:
                 inputSchema={
                     "type": "object",
                     "properties": {}
-                }
+                },
+                annotations=ToolAnnotations(
+                    readOnlyHint=True,
+                    destructiveHint=False,
+                    idempotentHint=True,
+                    openWorldHint=False
+                )
             ),
             Tool(
                 name="get_categories",
@@ -111,7 +159,13 @@ class SkillsTools:
                 inputSchema={
                     "type": "object",
                     "properties": {}
-                }
+                },
+                annotations=ToolAnnotations(
+                    readOnlyHint=True,
+                    destructiveHint=False,
+                    idempotentHint=True,
+                    openWorldHint=False
+                )
             ),
             Tool(
                 name="get_skill_stats",
@@ -119,7 +173,13 @@ class SkillsTools:
                 inputSchema={
                     "type": "object",
                     "properties": {}
-                }
+                },
+                annotations=ToolAnnotations(
+                    readOnlyHint=True,
+                    destructiveHint=False,
+                    idempotentHint=True,
+                    openWorldHint=False
+                )
             )
         ]
 

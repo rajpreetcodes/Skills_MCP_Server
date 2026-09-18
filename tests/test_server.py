@@ -105,6 +105,13 @@ skills:
         for expected in expected_tools:
             assert expected in tool_names, f"Missing tool: {expected}"
 
+        for tool in tools:
+            assert tool.annotations is not None, f"Tool {tool.name} missing annotations"
+            assert isinstance(tool.annotations.read_only_hint, bool), f"{tool.name} missing boolean read_only_hint"
+            assert isinstance(tool.annotations.destructive_hint, bool), f"{tool.name} missing boolean destructive_hint"
+            assert isinstance(tool.annotations.idempotent_hint, bool), f"{tool.name} missing boolean idempotent_hint"
+            assert isinstance(tool.annotations.open_world_hint, bool), f"{tool.name} missing boolean open_world_hint"
+
     def test_server_resources_registered(self, temp_config):
         """Test MCP resources are registered."""
         config, config_file = temp_config
@@ -292,3 +299,14 @@ skills:
         assert len(result.messages) == 1
         assert "SKILL SUGGESTIONS" in result.messages[0].content.text
         assert "test-skill" in result.messages[0].content.text
+
+    def test_license_file_and_metadata(self):
+        """Test LICENSE file exists and pyproject.toml specifies MIT license."""
+        license_path = Path("LICENSE")
+        assert license_path.exists(), "LICENSE file is missing"
+        content = license_path.read_text(encoding="utf-8")
+        assert "MIT License" in content
+
+        pyproject_path = Path("pyproject.toml")
+        pyproject_content = pyproject_path.read_text(encoding="utf-8")
+        assert 'license = { text = "MIT" }' in pyproject_content
