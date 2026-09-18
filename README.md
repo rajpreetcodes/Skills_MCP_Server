@@ -1,5 +1,7 @@
 # Skills MCP Server
 
+[![M8ven Score](https://m8ven.ai/badge/mcp/rajpreetcodes/skills_mcp_server)](https://m8ven.ai/mcp/rajpreetcodes/skills_mcp_server)
+
 An MCP (Model Context Protocol) server that exposes your Claude Skills library as a discoverable, searchable, and composable skill registry. Designed for seamless integration with **Tasklet** (via HTTP/SSE) and local MCP hosts like **OpenCode**, **Claude Desktop**, and **Cursor** (via STDIO).
 
 ## Background and Motivation
