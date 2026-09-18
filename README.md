@@ -414,21 +414,15 @@ python -m src.server --transport http --port 8080
 
 - **Never expose HTTP without auth** in production
 - **Use HTTPS** behind reverse proxy (nginx, Caddy, Cloudflare Tunnel)
+- **Built-in Rate Limiting**: In HTTP mode, configurable sliding-window rate limiting (`RATE_LIMIT_ENABLED`, `RATE_LIMIT_PER_MINUTE`) protects endpoints against denial-of-service attempts
 - **Restrict network access** to authorized client IPs only
 - **Read-only skill mount** (`:ro` in Docker)
 - **No arbitrary code execution**: server only reads skill files
 
-## Future Extensibility
+## Privacy
 
-The architecture supports adding without rewrite:
-- Git-based skill sources (remote repos)
-- Semantic/vector search (embeddings)
-- Skill versioning & dependencies
-- Multi-user permissions
-- Skill marketplace
-- OAuth/OIDC integration
-- Multi-repository aggregation
+Skills MCP Server is a local-first engineering tool. It contains zero tracking, zero telemetry, and zero remote analytics. All skill indexing, search queries, and prompt resolutions execute strictly in local process memory on your machine. For complete details, see [PRIVACY.md](PRIVACY.md).
 
 ## License
 
-MIT: See individual skill licenses in their respective directories.
+This project is licensed under the MIT License. See [LICENSE](LICENSE) for details. Individual skill files retain their respective author licenses in their corresponding directories.

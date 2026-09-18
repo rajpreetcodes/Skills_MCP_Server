@@ -13,6 +13,13 @@ dependencies = [
     "pyyaml>=6.0",
 ]
 
+[project.urls]
+Homepage = "https://github.com/rajpreetcodes/Skills_MCP_Server"
+Repository = "https://github.com/rajpreetcodes/Skills_MCP_Server"
+Documentation = "https://github.com/rajpreetcodes/Skills_MCP_Server#readme"
+Issues = "https://github.com/rajpreetcodes/Skills_MCP_Server/issues"
+"Privacy Policy" = "https://github.com/rajpreetcodes/Skills_MCP_Server/blob/main/PRIVACY.md"
+
 [project.optional-dependencies]
 dev = [
     "pytest>=8.0",

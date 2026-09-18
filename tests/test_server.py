@@ -310,3 +310,54 @@ skills:
         pyproject_path = Path("pyproject.toml")
         pyproject_content = pyproject_path.read_text(encoding="utf-8")
         assert 'license = { text = "MIT" }' in pyproject_content
+
+    def test_privacy_policy_and_project_urls(self):
+        """Test PRIVACY.md exists and pyproject.toml defines project URLs."""
+        privacy_path = Path("PRIVACY.md")
+        assert privacy_path.exists(), "PRIVACY.md file is missing"
+        content = privacy_path.read_text(encoding="utf-8")
+        assert "Privacy Policy" in content
+        assert "Local-First" in content
+
+        pyproject_path = Path("pyproject.toml")
+        pyproject_content = pyproject_path.read_text(encoding="utf-8")
+        assert "[project.urls]" in pyproject_content
+        assert "Homepage" in pyproject_content
+        assert "Repository" in pyproject_content
+
+    @pytest.mark.asyncio
+    async def test_rate_limiter_logic(self):
+        """Test RateLimiter sliding window mechanism."""
+        from src.http_server import RateLimiter
+
+        limiter = RateLimiter(requests_per_minute=2, enabled=True)
+        allowed, remaining, _ = await limiter.is_allowed("127.0.0.1")
+        assert allowed is True
+        assert remaining == 1
+
+        allowed, remaining, _ = await limiter.is_allowed("127.0.0.1")
+        assert allowed is True
+        assert remaining == 0
+
+        allowed, remaining, retry_after = await limiter.is_allowed("127.0.0.1")
+        assert allowed is False
+        assert remaining == 0
+        assert retry_after > 0
+
+        # Different client IP is unaffected
+        allowed_other, _, _ = await limiter.is_allowed("192.168.1.1")
+        assert allowed_other is True
+
+    def test_http_server_rate_limit_stats(self, temp_config):
+        """Test HTTP server stats reflect rate limiting configuration."""
+        from src.http_server import SkillsHTTPServer
+
+        config, _ = temp_config
+        config["rate_limit_enabled"] = True
+        config["rate_limit_per_minute"] = 45
+
+        http_server = SkillsHTTPServer(config)
+        stats = http_server.get_stats()
+        assert "rate_limiting" in stats
+        assert stats["rate_limiting"]["enabled"] is True
+        assert stats["rate_limiting"]["limit_per_minute"] == 45

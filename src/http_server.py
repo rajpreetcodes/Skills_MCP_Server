@@ -1,10 +1,12 @@
 """HTTP transport server for remote MCP access (Tasklet, etc.)."""
+import asyncio
 import json
 import logging
 import sys
+import time
 from contextlib import asynccontextmanager
 from pathlib import Path
-from typing import Optional
+from typing import Optional, Dict, List, Tuple
 
 from fastapi import FastAPI, Request, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
@@ -30,6 +32,42 @@ logging.basicConfig(
     stream=sys.stderr
 )
 logger = logging.getLogger(__name__)
+
+
+class RateLimiter:
+    """Sliding-window in-memory rate limiter per client IP address."""
+
+    def __init__(self, requests_per_minute: int = 60, enabled: bool = True):
+        self.requests_per_minute = requests_per_minute
+        self.enabled = enabled
+        self._clients: Dict[str, List[float]] = {}
+        self._lock = asyncio.Lock()
+
+    async def is_allowed(self, client_id: str) -> Tuple[bool, int, int]:
+        """Check if request is allowed. Returns (allowed, remaining, retry_after)."""
+        if not self.enabled or self.requests_per_minute <= 0:
+            return True, self.requests_per_minute, 0
+
+        now = time.time()
+        window_start = now - 60.0
+
+        async with self._lock:
+            history = self._clients.get(client_id, [])
+            history = [t for t in history if t > window_start]
+
+            if len(history) >= self.requests_per_minute:
+                retry_after = int(history[0] - window_start) + 1
+                self._clients[client_id] = history
+                return False, 0, max(1, retry_after)
+
+            history.append(now)
+            self._clients[client_id] = history
+            remaining = self.requests_per_minute - len(history)
+            return True, remaining, 0
+
+    def reset(self):
+        """Clear rate limiter history."""
+        self._clients.clear()
 
 
 class SkillsHTTPServer:
@@ -62,11 +100,51 @@ class SkillsHTTPServer:
             allow_methods=["*"],
             allow_headers=["*"],
         )
+
+        # Rate limiting
+        self.rate_limiter = RateLimiter(
+            requests_per_minute=int(config.get("rate_limit_per_minute", 60)),
+            enabled=bool(config.get("rate_limit_enabled", True))
+        )
+        self._setup_rate_limiting()
         self._setup_auth()
         self._setup_http_routes()
 
         # SSE transport
         self.sse_transport = SseServerTransport("/mcp/messages")
+
+    def _setup_rate_limiting(self):
+        """Setup rate limiting middleware on FastAPI."""
+        from starlette.responses import JSONResponse
+
+        @self.app.middleware("http")
+        async def rate_limit_middleware(request: Request, call_next):
+            if not self.rate_limiter.enabled:
+                return await call_next(request)
+
+            # Health check endpoint bypasses rate limiting
+            if request.url.path == "/health":
+                return await call_next(request)
+
+            client_id = request.client.host if request.client else "127.0.0.1"
+            allowed, remaining, retry_after = await self.rate_limiter.is_allowed(client_id)
+
+            if not allowed:
+                return JSONResponse(
+                    content={"detail": "Rate limit exceeded. Please retry later."},
+                    status_code=429,
+                    headers={
+                        "Retry-After": str(retry_after),
+                        "X-RateLimit-Limit": str(self.rate_limiter.requests_per_minute),
+                        "X-RateLimit-Remaining": "0",
+                        "X-RateLimit-Reset": str(retry_after)
+                    }
+                )
+
+            response = await call_next(request)
+            response.headers["X-RateLimit-Limit"] = str(self.rate_limiter.requests_per_minute)
+            response.headers["X-RateLimit-Remaining"] = str(remaining)
+            return response
 
     def _register_mcp_handlers(self):
         """Register MCP protocol handlers using add_request_handler."""
@@ -220,7 +298,11 @@ class SkillsHTTPServer:
             "profiles": len(self.profile_loader._profiles),
             "categories": len(self.registry._category_index),
             "skill_root": str(self.registry.skill_root),
-            "transport": "http+sse"
+            "transport": "http+sse",
+            "rate_limiting": {
+                "enabled": self.rate_limiter.enabled,
+                "limit_per_minute": self.rate_limiter.requests_per_minute
+            }
         }
 
     def run(self, host: str = "0.0.0.0", port: int = 8000):
@@ -248,7 +330,9 @@ def load_config(config_path: Optional[Path] = None) -> dict:
         "host": "0.0.0.0",
         "port": 8000,
         "log_level": "INFO",
-        "auth_token": None
+        "auth_token": None,
+        "rate_limit_enabled": True,
+        "rate_limit_per_minute": 60
     }
 
     if config_path and config_path.exists():
@@ -266,14 +350,18 @@ def load_config(config_path: Optional[Path] = None) -> dict:
         "HOST": "host",
         "PORT": "port",
         "LOG_LEVEL": "log_level",
-        "AUTH_TOKEN": "auth_token"
+        "AUTH_TOKEN": "auth_token",
+        "RATE_LIMIT_ENABLED": "rate_limit_enabled",
+        "RATE_LIMIT_PER_MINUTE": "rate_limit_per_minute"
     }
 
     for env_var, config_key in env_mapping.items():
         value = os.environ.get(env_var)
         if value is not None:
-            if config_key == "port":
+            if config_key in ("port", "rate_limit_per_minute"):
                 value = int(value)
+            elif config_key == "rate_limit_enabled":
+                value = str(value).lower() not in ("false", "0", "no", "off")
             default_config[config_key] = value
 
     return default_config

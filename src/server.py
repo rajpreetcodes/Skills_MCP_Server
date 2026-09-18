@@ -149,7 +149,9 @@ def load_config(config_path: Optional[Path] = None) -> dict:
         "host": "0.0.0.0",
         "port": 8080,
         "log_level": "INFO",
-        "auth_token": None
+        "auth_token": None,
+        "rate_limit_enabled": True,
+        "rate_limit_per_minute": 60
     }
 
     # Load from config file if exists
@@ -169,14 +171,18 @@ def load_config(config_path: Optional[Path] = None) -> dict:
         "HOST": "host",
         "PORT": "port",
         "LOG_LEVEL": "log_level",
-        "AUTH_TOKEN": "auth_token"
+        "AUTH_TOKEN": "auth_token",
+        "RATE_LIMIT_ENABLED": "rate_limit_enabled",
+        "RATE_LIMIT_PER_MINUTE": "rate_limit_per_minute"
     }
 
     for env_var, config_key in env_mapping.items():
         value = os.environ.get(env_var)
         if value is not None:
-            if config_key == "port":
+            if config_key in ("port", "rate_limit_per_minute"):
                 value = int(value)
+            elif config_key == "rate_limit_enabled":
+                value = str(value).lower() not in ("false", "0", "no", "off")
             default_config[config_key] = value
 
     return default_config
