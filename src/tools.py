@@ -1,18 +1,56 @@
 """MCP Tools for the skills server."""
+import logging
 import json
+import math
+import os
+import re
+import secrets
+import threading
+import time
+from datetime import datetime, timezone
+from numbers import Real
+from pathlib import Path
 from typing import List, Optional, Dict, Any, Union
 from mcp.types import Tool, TextContent, CallToolResult, ToolAnnotations
 from .registry import SkillRegistry
 from .profile_loader import ProfileLoader
 from .models import SkillMetadata, SearchResult
 
+logger = logging.getLogger(__name__)
+_CONTEXT_TTL_SECONDS = 1800
+_MAX_SEARCH_CONTEXTS = 1024
+_DEFAULT_AMBIGUITY_THRESHOLD = 2.0
+_QUERY_SECRET_PATTERNS = (
+    (re.compile(r"(?i)\bBearer\s+\S+"), "Bearer [REDACTED]"),
+    (
+        re.compile(r"(?i)\b([a-z0-9_-]*(?:api[_-]?key|access[_-]?token|auth[_-]?token|password|secret)[a-z0-9_-]*)\s*([:=]\s*|\s+)\S+"),
+        r"\1\2[REDACTED]",
+    ),
+    (re.compile(r"(?i)\btoken=([^&\s]+)"), "token=[REDACTED]"),
+)
+
 
 class SkillsTools:
     """MCP tool implementations."""
 
-    def __init__(self, registry: SkillRegistry, profile_loader: ProfileLoader):
+    def __init__(self, registry: SkillRegistry, profile_loader: ProfileLoader, config: Optional[Dict[str, Any]] = None):
         self.registry = registry
         self.profile_loader = profile_loader
+        config = config or {}
+        threshold = self._numeric_score(
+            config.get("search_ambiguity_threshold", _DEFAULT_AMBIGUITY_THRESHOLD)
+        )
+        self.ambiguity_threshold = (
+            threshold if threshold is not None and threshold >= 0
+            else _DEFAULT_AMBIGUITY_THRESHOLD
+        )
+        log_path = config.get("correction_log_path")
+        if not isinstance(log_path, (str, os.PathLike)) or not str(log_path).strip():
+            log_path = "data/skill-selection-corrections.jsonl"
+        self.correction_log_path = Path(log_path)
+        self._search_contexts: Dict[str, Dict[str, Any]] = {}
+        self._search_context_lock = threading.Lock()
+        self._correction_log_lock = threading.Lock()
 
     def get_tools(self) -> List[Tool]:
         """Return all available MCP tools."""
@@ -37,7 +75,7 @@ class SkillsTools:
             ),
             Tool(
                 name="search_skills",
-                description="Search skills by natural language query. Returns ranked results with relevance scores. Use when you need skills for a specific task.",
+                description="Search skills by natural language query. Returns ranked results, relevance scores, and a near-tie ambiguity indicator; pass search_context_id to get_skill to record an alternate selection.",
                 inputSchema={
                     "type": "object",
                     "properties": {
@@ -50,7 +88,7 @@ class SkillsTools:
                 annotations=ToolAnnotations(
                     readOnlyHint=True,
                     destructiveHint=False,
-                    idempotentHint=True,
+                    idempotentHint=False,
                     openWorldHint=False
                 )
             ),
@@ -61,14 +99,15 @@ class SkillsTools:
                     "type": "object",
                     "properties": {
                         "skill_id": {"type": "string", "description": "Exact skill ID (e.g., 'ui-ux-pro-max.ui-ux-pro-max', 'ponytail.ponytail')"},
-                        "include_supporting": {"type": "boolean", "default": False, "description": "Include supporting reference files"}
+                        "include_supporting": {"type": "boolean", "default": False, "description": "Include supporting reference files"},
+                        "search_context_id": {"type": "string", "description": "Optional ID returned by search_skills, used to record a non-top-ranked selection"}
                     },
                     "required": ["skill_id"]
                 },
                 annotations=ToolAnnotations(
-                    readOnlyHint=True,
+                    readOnlyHint=False,
                     destructiveHint=False,
-                    idempotentHint=True,
+                    idempotentHint=False,
                     openWorldHint=False
                 )
             ),
@@ -260,6 +299,37 @@ class SkillsTools:
             )
 
         results = self.registry.search_skills(query, limit, offset)
+        context_results = (
+            self.registry.search_skills(query, max(limit + offset, 2), 0)
+            if results else []
+        )
+        top_candidates = [
+            {
+                "skill_id": candidate.skill_id,
+                "name": candidate.name,
+                "score": self._valid_score(candidate.score),
+            }
+            for candidate in context_results[:2]
+        ]
+        score_margin = None
+        ambiguous = False
+        if len(top_candidates) == 2:
+            first_score = self._numeric_score(getattr(context_results[0], "score", None))
+            second_score = self._numeric_score(getattr(context_results[1], "score", None))
+            if first_score is not None and second_score is not None:
+                raw_margin = abs(first_score - second_score)
+                score_margin = round(raw_margin, 2)
+                ambiguous = raw_margin <= self.ambiguity_threshold or math.isclose(
+                    raw_margin,
+                    self.ambiguity_threshold,
+                    rel_tol=1e-12,
+                    abs_tol=1e-12,
+                )
+
+        search_context_id = (
+            self._remember_search_context(query, context_results, ambiguous, score_margin, top_candidates)
+            if context_results else None
+        )
         result = {
             "query": query,
             "results": [
@@ -268,7 +338,7 @@ class SkillsTools:
                     "name": r.name,
                     "description": r.description[:200] + "..." if len(r.description) > 200 else r.description,
                     "category": r.category,
-                    "score": round(r.score, 2),
+                    "score": self._valid_score(r.score),
                     "matched_fields": r.matched_fields,
                     "tags": r.tags[:10]
                 }
@@ -276,13 +346,18 @@ class SkillsTools:
             ],
             "total_matches": len(results),
             "limit": limit,
-            "offset": offset
+            "offset": offset,
+            "ambiguous": ambiguous,
+            "score_margin": score_margin,
+            "top_candidates": top_candidates,
+            "search_context_id": search_context_id
         }
         return [TextContent(type="text", text=self._format_json(result))]
 
     async def _get_skill(self, args: Dict) -> Union[List[TextContent], CallToolResult]:
         skill_id = args.get("skill_id", "")
         include_supporting = args.get("include_supporting", False)
+        search_context_id = args.get("search_context_id")
 
         if not skill_id:
             return CallToolResult(
@@ -319,7 +394,149 @@ class SkillsTools:
         if include_supporting:
             result["supporting_files"] = skill.supporting_files
 
-        return [TextContent(type="text", text=self._format_json(result))]
+        selection_diagnostics = self._get_search_diagnostics(search_context_id)
+        if selection_diagnostics is not None:
+            result["search_diagnostics"] = selection_diagnostics
+        response_text = self._format_json(result)
+        if isinstance(search_context_id, str):
+            self._record_selection_correction(search_context_id, skill)
+
+        return [TextContent(type="text", text=response_text)]
+
+    @staticmethod
+    def _numeric_score(score: Any) -> Optional[float]:
+        if not isinstance(score, Real) or isinstance(score, bool):
+            return None
+        try:
+            numeric_score = float(score)
+        except (OverflowError, TypeError, ValueError):
+            return None
+        return numeric_score if math.isfinite(numeric_score) else None
+
+    @classmethod
+    def _valid_score(cls, score: Any) -> Optional[float]:
+        numeric_score = cls._numeric_score(score)
+        return round(numeric_score, 2) if numeric_score is not None else None
+
+    def _remember_search_context(
+        self,
+        query: str,
+        results: List[SearchResult],
+        ambiguous: bool,
+        score_margin: Optional[float],
+        top_candidates: List[Dict[str, Any]],
+    ) -> str:
+        now = time.monotonic()
+        context_id = secrets.token_urlsafe(18)
+        score_by_id = {
+            result.skill_id: self._numeric_score(getattr(result, "score", None))
+            for result in results
+        }
+        top = results[0]
+        with self._search_context_lock:
+            expired = [
+                key for key, value in self._search_contexts.items()
+                if now - value["created_at"] > _CONTEXT_TTL_SECONDS
+            ]
+            for key in expired:
+                self._search_contexts.pop(key, None)
+            while len(self._search_contexts) >= _MAX_SEARCH_CONTEXTS:
+                self._search_contexts.pop(next(iter(self._search_contexts)))
+            self._search_contexts[context_id] = {
+                "created_at": now,
+                "query": query,
+                "top_pick": {
+                    "skill_id": top.skill_id,
+                    "name": top.name,
+                    "score": self._numeric_score(getattr(top, "score", None)),
+                },
+                "scores": score_by_id,
+                "diagnostics": {
+                    "ambiguous": ambiguous,
+                    "score_margin": score_margin,
+                    "top_candidates": [dict(candidate) for candidate in top_candidates],
+                },
+            }
+        return context_id
+
+    def _get_search_diagnostics(self, context_id: Any) -> Optional[Dict[str, Any]]:
+        if not isinstance(context_id, str):
+            return None
+        with self._search_context_lock:
+            context = self._search_contexts.get(context_id)
+            if not context or time.monotonic() - context["created_at"] > _CONTEXT_TTL_SECONDS:
+                return None
+            diagnostics = context.get("diagnostics")
+            if not isinstance(diagnostics, dict):
+                return None
+            return {
+                **diagnostics,
+                "top_candidates": [dict(candidate) for candidate in diagnostics["top_candidates"]],
+            }
+
+    def _record_selection_correction(self, context_id: str, selected_skill: Any) -> None:
+        with self._search_context_lock:
+            context = self._search_contexts.pop(context_id, None)
+        if not context or time.monotonic() - context["created_at"] > _CONTEXT_TTL_SECONDS:
+            return
+
+        top_pick = context.get("top_pick")
+        if not isinstance(top_pick, dict) or not top_pick.get("skill_id"):
+            return
+        if top_pick["skill_id"] == selected_skill.id:
+            return
+
+        raw_top_score = self._numeric_score(top_pick.get("score"))
+        raw_selected_score = self._numeric_score(context.get("scores", {}).get(selected_skill.id))
+        score_margin = (
+            round(abs(raw_top_score - raw_selected_score), 2)
+            if raw_top_score is not None and raw_selected_score is not None
+            else None
+        )
+        event = {
+            "event": "skill_selection_correction",
+            "timestamp": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
+            "search_context_id": context_id,
+            "query": self._sanitize_query(context.get("query", "")),
+            "top_pick": {
+                "skill_id": top_pick["skill_id"],
+                "name": top_pick.get("name", ""),
+                "score": round(raw_top_score, 2) if raw_top_score is not None else None,
+            },
+            "actual_pick": {
+                "skill_id": selected_skill.id,
+                "name": selected_skill.name,
+                "score": round(raw_selected_score, 2) if raw_selected_score is not None else None,
+            },
+            "score_margin": score_margin,
+        }
+        try:
+            self._append_correction_event(event)
+        except Exception:
+            logger.warning("Failed to write skill selection correction event")
+
+    @staticmethod
+    def _sanitize_query(query: Any) -> str:
+        sanitized = str(query)
+        for pattern, replacement in _QUERY_SECRET_PATTERNS:
+            sanitized = pattern.sub(replacement, sanitized)
+        return sanitized[:1000]
+
+    def _append_correction_event(self, event: Dict[str, Any]) -> None:
+        payload = (json.dumps(event, ensure_ascii=True, allow_nan=False) + "\n").encode("utf-8")
+        self.correction_log_path.parent.mkdir(parents=True, exist_ok=True)
+        with self._correction_log_lock:
+            descriptor = os.open(
+                self.correction_log_path,
+                os.O_APPEND | os.O_CREAT | os.O_WRONLY,
+                0o600,
+            )
+            try:
+                written = os.write(descriptor, payload)
+                if written != len(payload):
+                    raise OSError("incomplete correction event write")
+            finally:
+                os.close(descriptor)
 
     async def _get_skills(self, args: Dict) -> Union[List[TextContent], CallToolResult]:
         skill_ids = args.get("skill_ids", [])
