@@ -36,7 +36,7 @@ class SkillsMCPServer:
 
         self.registry = SkillRegistry(skill_root)
         self.profile_loader = ProfileLoader(profile_dir, self.registry)
-        self.tools = SkillsTools(self.registry, self.profile_loader)
+        self.tools = SkillsTools(self.registry, self.profile_loader, config)
         self.resources = SkillsResources(self.registry)
         self.prompts = SkillsPrompts(self.registry, self.profile_loader)
 
@@ -151,7 +151,9 @@ def load_config(config_path: Optional[Path] = None) -> dict:
         "log_level": "INFO",
         "auth_token": None,
         "rate_limit_enabled": True,
-        "rate_limit_per_minute": 60
+        "rate_limit_per_minute": 60,
+        "search_ambiguity_threshold": 2.0,
+        "correction_log_path": "data/skill-selection-corrections.jsonl"
     }
 
     # Load from config file if exists
@@ -173,7 +175,9 @@ def load_config(config_path: Optional[Path] = None) -> dict:
         "LOG_LEVEL": "log_level",
         "AUTH_TOKEN": "auth_token",
         "RATE_LIMIT_ENABLED": "rate_limit_enabled",
-        "RATE_LIMIT_PER_MINUTE": "rate_limit_per_minute"
+        "RATE_LIMIT_PER_MINUTE": "rate_limit_per_minute",
+        "SKILL_AMBIGUITY_THRESHOLD": "search_ambiguity_threshold",
+        "CORRECTION_LOG_PATH": "correction_log_path"
     }
 
     for env_var, config_key in env_mapping.items():
@@ -181,6 +185,11 @@ def load_config(config_path: Optional[Path] = None) -> dict:
         if value is not None:
             if config_key in ("port", "rate_limit_per_minute"):
                 value = int(value)
+            elif config_key == "search_ambiguity_threshold":
+                try:
+                    value = float(value)
+                except ValueError:
+                    value = 2.0
             elif config_key == "rate_limit_enabled":
                 value = str(value).lower() not in ("false", "0", "no", "off")
             default_config[config_key] = value
@@ -198,6 +207,11 @@ async def main():
     parser.add_argument("--transport", choices=["stdio", "http"], default=None, help="Transport mode")
     parser.add_argument("--host", default=None, help="HTTP host")
     parser.add_argument("--port", type=int, default=None, help="HTTP port")
+    parser.add_argument(
+        "--no-auth",
+        action="store_true",
+        help="Disable HTTP authentication (unsafe; use only for local development)",
+    )
     args = parser.parse_args()
 
     config = load_config(args.config)
@@ -209,8 +223,16 @@ async def main():
         config["host"] = args.host
     if args.port:
         config["port"] = args.port
+    config["no_auth"] = args.no_auth
     if "port" not in config:
         config["port"] = 8080
+
+    if config["transport"] == "http" and not config["no_auth"]:
+        from .http_server import resolve_auth_token
+        try:
+            resolve_auth_token(config)
+        except ValueError as error:
+            parser.error(str(error))
 
     server = SkillsMCPServer(config)
 

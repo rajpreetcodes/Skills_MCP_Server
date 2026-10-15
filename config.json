@@ -5,5 +5,7 @@
   "host": "0.0.0.0",
   "port": 8080,
   "log_level": "INFO",
-  "auth_token": null
+  "auth_token": null,
+  "search_ambiguity_threshold": 2.0,
+  "correction_log_path": "data/skill-selection-corrections.jsonl"
 }

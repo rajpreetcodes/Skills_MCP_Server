@@ -355,6 +355,7 @@ skills:
         config, _ = temp_config
         config["rate_limit_enabled"] = True
         config["rate_limit_per_minute"] = 45
+        config["auth_token"] = "test-token"
 
         http_server = SkillsHTTPServer(config)
         stats = http_server.get_stats()

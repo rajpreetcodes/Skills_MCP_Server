@@ -108,6 +108,61 @@ stages:
         assert res_ok.status_code == 200
         assert res_ok.json()["skills"] == 2
 
+    @pytest.mark.parametrize("token", [None, "", "   "])
+    def test_http_requires_token_before_server_start(self, test_env, token, monkeypatch):
+        monkeypatch.delenv("AUTH_TOKEN", raising=False)
+        config, _, _ = test_env
+        config["auth_token"] = token
+
+        with pytest.raises(ValueError, match="requires a non-empty AUTH_TOKEN"):
+            SkillsHTTPServer(config)
+
+    def test_http_no_auth_requires_explicit_override(self, test_env):
+        config, _, _ = test_env
+        config["auth_token"] = None
+        config["no_auth"] = True
+        client = TestClient(SkillsHTTPServer(config).app)
+
+        assert client.get("/stats").status_code == 200
+
+    def test_http_mcp_endpoints_require_auth(self, test_env):
+        config, _, _ = test_env
+        client = TestClient(SkillsHTTPServer(config).app)
+
+        assert client.get("/mcp/sse").status_code == 401
+        assert client.post("/mcp/messages").status_code == 401
+        assert client.post("/mcp/rpc").status_code == 401
+
+    def test_http_cli_fails_closed_without_token(self, test_env):
+        import os
+        import subprocess
+        import sys
+
+        env = os.environ.copy()
+        env.pop("AUTH_TOKEN", None)
+        result = subprocess.run(
+            [sys.executable, "-m", "src.server", "--transport", "http"],
+            cwd=Path(__file__).resolve().parents[1],
+            env=env,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+
+        assert result.returncode != 0
+        assert "Set AUTH_TOKEN" in result.stderr
+
+    @pytest.mark.parametrize("no_auth", [False, True])
+    def test_stdio_does_not_require_http_token(self, test_env, no_auth):
+        from src.server import SkillsMCPServer
+
+        config, _, _ = test_env
+        config["transport"] = "stdio"
+        config["auth_token"] = None
+        config["no_auth"] = no_auth
+
+        assert SkillsMCPServer(config).tools is not None
+
     def test_http_auth_query_token(self, test_env):
         """Verify token in query parameters works for browser EventSource."""
         config, _, _ = test_env
