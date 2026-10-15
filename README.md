@@ -112,6 +112,7 @@ Because Claude.ai runs in the cloud, it cannot directly reach `localhost:8080` o
 **Step 1: Start the HTTP server pointing to your skills folder**
 ```bash
 cd L:\My Innovations\Skills_MCP_Server
+export AUTH_TOKEN="your-secure-token-here"
 python -m src.server --transport http --host 0.0.0.0 --port 8080 --skill-root "C:\Users\<username>\.claude\skills"
 ```
 
@@ -131,7 +132,7 @@ This outputs a public URL: `https://<tunnel-id>.tinyfi.sh`.
    - **Name**: `my-skills`
    - **Transport**: `SSE`
    - **URL**: `https://<tunnel-id>.tinyfi.sh/mcp/sse`
-   - **Authorization Header**: `Bearer <AUTH_TOKEN>` (if auth is enabled)
+    - **Authorization Header**: `Bearer <AUTH_TOKEN>` (required for HTTP/SSE)
 5. Save. Claude in your web browser now has direct access to your local skills library.
 
 ---
@@ -457,7 +458,7 @@ Point your client configuration directly to the SSE endpoint:
 ```
 
 > **Authentication & Transport Limitations:**
-> - If `AUTH_TOKEN` is configured on the server, include the bearer token in headers (`"headers": { "Authorization": "Bearer <your-token>" }`) or append it as a query parameter: `http://localhost:8080/mcp/sse?token=<your-token>`.
+> - HTTP/SSE requires a configured `AUTH_TOKEN` by default. Include the bearer token in headers (`"headers": { "Authorization": "Bearer <your-token>" }`). Clients limited to EventSource may use the `token` query parameter; the server removes it from the downstream ASGI query string after checking it, but proxies and clients may retain URLs, so prefer the header.
 > - Skills MCP Server implements MCP over Server-Sent Events (`GET /mcp/sse` for event streaming and `POST /mcp/messages` for client messages). Direct HTTP POST JSON-RPC calls to `/mcp/rpc` are rejected; ensure your client uses the SSE endpoint.
 
 #### Plugin-Specific Setup Guides
@@ -781,15 +782,17 @@ From the repository root, start the server in HTTP mode:
 cd /path/to/Skills_MCP_Server
 source .venv/bin/activate
 
-# Local development (no authentication)
-python -m src.server --transport http --host 0.0.0.0 --port 8080 --skill-root /path/to/skills
+# Local development without authentication (explicit opt-out; bind only to loopback)
+python -m src.server --transport http --no-auth --host 127.0.0.1 --port 8080 --skill-root /path/to/skills
 ```
 
-If securing the server with a Bearer token (recommended for remote or shared deployments):
+HTTP authentication is enabled by default. Set a non-empty Bearer token before starting HTTP:
 ```bash
 export AUTH_TOKEN="your-secure-token-here"
 python -m src.server --transport http --host 0.0.0.0 --port 8080 --skill-root /path/to/skills
 ```
+
+`--no-auth` is the only way to disable HTTP authentication; it is intentionally not configurable through an environment variable or config-file fallback. Use it only for isolated local development. Rotate a token by generating a new value, updating `AUTH_TOKEN`, restarting the server, and replacing the client credential. Never commit tokens to `config.json` or logs; avoid URLs except for clients that cannot set headers. The Bearer header is preferred.
 
 Verify that the server is up and running:
 ```bash
@@ -802,7 +805,7 @@ curl http://localhost:8080/health
 Register the SSE endpoint (`/mcp/sse`) with Claude Code:
 
 ```bash
-# Standard registration (no auth)
+# Use only when the server was deliberately started with --no-auth
 claude mcp add --transport sse skills http://localhost:8080/mcp/sse
 ```
 
@@ -1001,7 +1004,9 @@ stages:
 | `HOST` | HTTP bind address | `0.0.0.0` |
 | `PORT` | HTTP port | `8080` |
 | `LOG_LEVEL` | Log level | `INFO` |
-| `AUTH_TOKEN` | Bearer token for HTTP auth | (none) |
+| `AUTH_TOKEN` | Required non-empty Bearer token for HTTP/SSE unless `--no-auth` is explicitly passed | (none) |
+| `SKILL_AMBIGUITY_THRESHOLD` | Maximum top-two score difference treated as ambiguous | `2.0` |
+| `CORRECTION_LOG_PATH` | Append-only JSONL skill-selection correction log | `data/skill-selection-corrections.jsonl` |
 
 ### Config File (`config.json`)
 
@@ -1013,9 +1018,15 @@ stages:
   "host": "0.0.0.0",
   "port": 8080,
   "log_level": "INFO",
-  "auth_token": null
+  "auth_token": null,
+  "search_ambiguity_threshold": 2.0,
+  "correction_log_path": "data/skill-selection-corrections.jsonl"
 }
 ```
+
+`search_skills` keeps its ranked `results` array and adds `ambiguous`, `score_margin`, `top_candidates`, and `search_context_id`. Scores are additive and higher is better; the default ambiguity margin is 2.0 points, inclusive. Pass the returned `search_context_id` to `get_skill` when a caller selects a result so a non-top-ranked choice can be recorded. The correlated `get_skill` response also includes `search_diagnostics`; equal-score candidates retain their existing order.
+
+Successful non-top-ranked selections append one JSON object per line to `CORRECTION_LOG_PATH`. Events include the original query (up to 1,000 characters), top and selected skill IDs/names/scores, score margin, and UTC timestamp. Query values matching Bearer credentials or common token, API-key, password, and secret assignments are replaced with `[REDACTED]`; authorization headers and credentials are never included. Inspect the local dataset with `tail -n 20 data/skill-selection-corrections.jsonl` and group events by `top_pick.skill_id` and `actual_pick.skill_id` to identify confusing skill pairs. The file is created with owner-only permissions where supported.
 
 ## Adding Skills
 
@@ -1114,6 +1125,8 @@ python -c "import secrets; print(secrets.token_urlsafe(32))"
 # Set in environment
 export AUTH_TOKEN="generated-token-here"
 ```
+
+HTTP/SSE now fails before binding a listener if the token is missing or blank. To rotate it, change the environment value and restart the server, then update each client. For intentional local development only, use `python -m src.server --transport http --no-auth --host 127.0.0.1`; never expose this mode to a shared or public network.
 
 Tasklet connection must include: `Authorization: Bearer <token>`
 
