@@ -34,6 +34,24 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
+def resolve_auth_token(config: dict) -> Optional[str]:
+    """Return the configured HTTP token or fail closed unless explicitly disabled."""
+    import os
+
+    if config.get("no_auth") is True:
+        return None
+
+    token = config.get("auth_token")
+    if not isinstance(token, str) or not token.strip():
+        token = os.environ.get("AUTH_TOKEN")
+    if not isinstance(token, str) or not token.strip():
+        raise ValueError(
+            "HTTP transport requires a non-empty AUTH_TOKEN. Set AUTH_TOKEN or "
+            "use --no-auth only for intentional local development."
+        )
+    return token.strip()
+
+
 class RateLimiter:
     """Sliding-window in-memory rate limiter per client IP address."""
 
@@ -75,12 +93,14 @@ class SkillsHTTPServer:
 
     def __init__(self, config: dict):
         self.config = config
+        self.auth_token = resolve_auth_token(config)
+        self.auth_disabled = config.get("no_auth") is True
         skill_root = Path(config.get("skill_root", "C:\\Users\\rajpr\\.claude\\skills"))
         profile_dir = Path(config.get("profile_dir", "profiles"))
 
         self.registry = SkillRegistry(skill_root)
         self.profile_loader = ProfileLoader(profile_dir, self.registry)
-        self.tools = SkillsTools(self.registry, self.profile_loader)
+        self.tools = SkillsTools(self.registry, self.profile_loader, config)
         self.resources = SkillsResources(self.registry)
         self.prompts = SkillsPrompts(self.registry, self.profile_loader)
 
@@ -206,21 +226,28 @@ class SkillsHTTPServer:
 
     def _setup_auth(self):
         """Setup authentication dependency."""
-        import os
         import secrets
 
-        self.auth_token = self.config.get("auth_token") or os.environ.get("AUTH_TOKEN")
-        if self.config.get("transport") == "http" and not self.auth_token:
-            logger.warning("AUTH_TOKEN is not configured for HTTP transport. Authentication is disabled.")
-
         async def verify_token(request: Request):
+            query_token = request.query_params.get("token")
+            if query_token is not None:
+                from urllib.parse import parse_qsl, urlencode
+
+                query_items = parse_qsl(
+                    request.scope.get("query_string", b"").decode("latin-1"),
+                    keep_blank_values=True,
+                )
+                request.scope["query_string"] = urlencode(
+                    [(key, value) for key, value in query_items if key != "token"]
+                ).encode("latin-1")
+
             if self.auth_token:
                 token = None
                 auth_header = request.headers.get("Authorization")
                 if auth_header and auth_header.startswith("Bearer "):
                     token = auth_header[7:].strip()
-                elif "token" in request.query_params:
-                    token = request.query_params.get("token")
+                elif query_token is not None:
+                    token = query_token
 
                 if not token:
                     raise HTTPException(status_code=401, detail="Missing or invalid Authorization header or token query parameter")
@@ -313,8 +340,8 @@ class SkillsHTTPServer:
         logger.info(f"Loaded {len(self.profile_loader._profiles)} profiles")
         if self.auth_token:
             logger.info("Authentication: ENABLED (Bearer token)")
-        else:
-            logger.warning("Authentication: DISABLED - not recommended for production")
+        elif self.auth_disabled:
+            logger.warning("Authentication: DISABLED by explicit no-auth option")
 
         uvicorn.run(self.app, host=host, port=port, log_level="info")
 
@@ -332,7 +359,9 @@ def load_config(config_path: Optional[Path] = None) -> dict:
         "log_level": "INFO",
         "auth_token": None,
         "rate_limit_enabled": True,
-        "rate_limit_per_minute": 60
+        "rate_limit_per_minute": 60,
+        "search_ambiguity_threshold": 2.0,
+        "correction_log_path": "data/skill-selection-corrections.jsonl"
     }
 
     if config_path and config_path.exists():
@@ -352,7 +381,9 @@ def load_config(config_path: Optional[Path] = None) -> dict:
         "LOG_LEVEL": "log_level",
         "AUTH_TOKEN": "auth_token",
         "RATE_LIMIT_ENABLED": "rate_limit_enabled",
-        "RATE_LIMIT_PER_MINUTE": "rate_limit_per_minute"
+        "RATE_LIMIT_PER_MINUTE": "rate_limit_per_minute",
+        "SKILL_AMBIGUITY_THRESHOLD": "search_ambiguity_threshold",
+        "CORRECTION_LOG_PATH": "correction_log_path"
     }
 
     for env_var, config_key in env_mapping.items():
@@ -360,6 +391,11 @@ def load_config(config_path: Optional[Path] = None) -> dict:
         if value is not None:
             if config_key in ("port", "rate_limit_per_minute"):
                 value = int(value)
+            elif config_key == "search_ambiguity_threshold":
+                try:
+                    value = float(value)
+                except ValueError:
+                    value = 2.0
             elif config_key == "rate_limit_enabled":
                 value = str(value).lower() not in ("false", "0", "no", "off")
             default_config[config_key] = value
@@ -375,11 +411,23 @@ def main():
     parser.add_argument("--config", type=Path, help="Path to config file")
     parser.add_argument("--host", default="0.0.0.0", help="Host to bind")
     parser.add_argument("--port", type=int, default=8000, help="Port to bind")
+    parser.add_argument(
+        "--no-auth",
+        action="store_true",
+        help="Disable HTTP authentication (unsafe; use only for local development)",
+    )
     args = parser.parse_args()
 
     config = load_config(args.config)
     config["host"] = args.host
     config["port"] = args.port
+    config["no_auth"] = args.no_auth
+
+    if not config["no_auth"]:
+        try:
+            resolve_auth_token(config)
+        except ValueError as error:
+            parser.error(str(error))
 
     server = SkillsHTTPServer(config)
     server.run(args.host, args.port)
