@@ -1,0 +1,30 @@
+name: docker-devops
+description: Docker containerization and deployment workflow covering image design, security scanning, and release verification
+version: "1.0.0"
+skills:
+  - devops
+  - container-security
+  - ponytail
+  - review
+  - verification-before-completion
+profiles: []
+stages:
+  plan:
+    - plan-eng-review
+    - devops
+  build:
+    - ponytail
+    - tdd
+  security-scan:
+    - container-security
+    - container-vulnerability-scanning
+    - secret-protection-audit
+    - capability-privilege-detection
+  verification:
+    - resource-requests-limits-validation
+    - probe-health-verification
+    - review
+    - verification-before-completion
+metadata:
+  tags: ["docker", "devops", "containers", "security"]
+  author: "Merab8"
