@@ -1,0 +1,68 @@
+id: aws_cloud_security
+name: AWS Cloud Security & IAM Posture
+description: Auditing AWS cloud environments, least-privilege IAM policy design, and security posture monitoring
+version: "1.0.0"
+category: security
+skills:
+  - aws-iam
+  - cloudtrail
+  - guardduty
+  - prowler
+  - scoutsuite
+  - checkov
+  - kms-encryption
+  - security-hub
+  - vpc-flow-logs
+  - review
+  - verification-before-completion
+tools:
+  - aws-cli
+  - prowler
+  - scoutsuite
+  - checkov
+  - trivy
+best_practices:
+  - "Least-privilege IAM: Design tightly scoped IAM policies with explicit Actions, Resources, and Condition keys, avoiding wildcard (*) permissions."
+  - "Enforcement of MFA: Require Multi-Factor Authentication (MFA) on all interactive console logins and privileged assume-role policies."
+  - "KMS key rotation: Use AWS Key Management Service (KMS) Customer Managed Keys (CMKs) with automatic annual key rotation enabled."
+  - "Encryption everywhere: Enforce AES-256 or KMS encryption at rest for S3 buckets, EBS volumes, RDS instances, and TLS 1.3 in transit."
+  - "Private subnet isolation: Deploy computing workloads in private subnets with NAT gateways, disabling public IPv4 addresses on worker nodes."
+guidelines:
+  - "Least-privilege IAM: Design tightly scoped IAM policies with explicit Actions, Resources, and Condition keys, avoiding wildcard (*) permissions."
+  - "Enforcement of MFA: Require Multi-Factor Authentication (MFA) on all interactive console logins and privileged assume-role policies."
+  - "KMS key rotation: Use AWS Key Management Service (KMS) Customer Managed Keys (CMKs) with automatic annual key rotation enabled."
+  - "Encryption everywhere: Enforce AES-256 or KMS encryption at rest for S3 buckets, EBS volumes, RDS instances, and TLS 1.3 in transit."
+  - "Private subnet isolation: Deploy computing workloads in private subnets with NAT gateways, disabling public IPv4 addresses on worker nodes."
+profiles: []
+stages:
+  iam-posture-audit:
+    - least-privilege-iam
+    - credential-report-analysis
+    - mfa-enforcement
+    - unused-credential-deprecation
+    - trust-policy-validation
+  policy-evaluation:
+    - condition-keys-enforcement
+    - service-control-policies
+    - permission-boundaries
+    - cross-account-access-review
+  data-encryption:
+    - kms-key-rotation
+    - s3-bucket-encryption-enforcement
+    - ebs-default-encryption
+    - tls-in-transit-verification
+  threat-detection:
+    - cloudtrail-multi-region-logging
+    - guardduty-finding-triage
+    - config-conformance-packs
+    - security-hub-standards
+  network-isolation:
+    - vpc-security-group-audit
+    - public-subnet-exposure-checks
+    - nacl-stateless-filtering
+    - vpc-endpoints-privatelink
+    - review
+    - verification-before-completion
+metadata:
+  tags: ["aws", "cloud-security", "iam", "prowler", "compliance", "audit", "kms", "security"]
+  author: "QuirkSphere"

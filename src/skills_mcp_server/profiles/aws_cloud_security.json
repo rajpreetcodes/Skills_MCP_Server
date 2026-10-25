@@ -1,0 +1,55 @@
+{
+  "id": "aws_cloud_security",
+  "name": "AWS Cloud Security & IAM Posture",
+  "description": "Auditing AWS cloud environments, least-privilege IAM policy design, and security posture monitoring.",
+  "version": "1.0.0",
+  "category": "security",
+  "skills": [
+    "aws-iam",
+    "cloudtrail",
+    "guardduty",
+    "prowler",
+    "scoutsuite",
+    "checkov"
+  ],
+  "tools": [
+    "aws-cli",
+    "prowler",
+    "scoutsuite",
+    "checkov",
+    "trivy"
+  ],
+  "best_practices": [
+    "Least-privilege IAM: Design tightly scoped IAM policies with explicit Actions, Resources, and Condition keys.",
+    "Enforcement of MFA: Require Multi-Factor Authentication on all interactive console logins and privileged assume-role policies.",
+    "KMS key rotation: Use AWS Key Management Service Customer Managed Keys with annual automatic key rotation enabled.",
+    "Encryption everywhere: Enforce encryption at rest for S3 buckets, EBS volumes, and RDS instances, alongside TLS in transit.",
+    "Private subnet isolation: Deploy computing workloads in private subnets with NAT gateways, avoiding public IPv4 addresses."
+  ],
+  "stages": {
+    "iam-posture-audit": [
+      "least-privilege-iam",
+      "credential-report-analysis",
+      "mfa-enforcement"
+    ],
+    "policy-evaluation": [
+      "condition-keys-enforcement",
+      "service-control-policies",
+      "permission-boundaries"
+    ],
+    "data-encryption": [
+      "kms-key-rotation",
+      "s3-bucket-encryption-enforcement",
+      "ebs-default-encryption"
+    ],
+    "network-isolation": [
+      "vpc-security-group-audit",
+      "public-subnet-exposure-checks",
+      "nacl-stateless-filtering"
+    ]
+  },
+  "metadata": {
+    "tags": ["aws", "cloud-security", "iam", "prowler", "compliance", "audit"],
+    "author": "QuirkSphere"
+  }
+}
