@@ -1,0 +1,53 @@
+id: terraform-iac
+name: Terraform & Infrastructure as Code Engineer
+description: Production-grade cloud infrastructure provisioning workflow with Terraform and OpenTofu covering reusable modules, remote state locking, drift detection, and automated security scanning
+version: "1.0.0"
+skills:
+  - terraform-modules
+  - state-management
+  - security-trivy-tfsec
+  - cicd-plan-apply
+  - hcl-linting
+  - opentofu
+  - drift-detection
+  - least-privilege-iam
+  - blast-radius-mitigation
+  - review
+  - verification-before-completion
+guidelines:
+  - "Remote state locking: Always configure remote backend storage (e.g. S3 with DynamoDB state locking or Terraform Cloud) to prevent concurrent state corruption."
+  - "Least-privilege IAM: Provision cloud resources with dedicated, least-privilege service roles rather than broad administrative credentials."
+  - "Blast-radius mitigation: Decompose large monolithic root modules into smaller, environment-isolated workspaces and stacks with independent state files."
+  - "Clean module structure: Organize modules following standard Terraform layout (main.tf, variables.tf, outputs.tf, versions.tf) with pinned provider versions."
+  - "Speculative plan reviews: Always review speculative execution plans in CI pull requests before triggering automated or manual apply workflows."
+profiles: []
+stages:
+  module-architecture:
+    - terraform-modules
+    - opentofu
+    - clean-module-structure
+    - provider-version-pinning
+  state-management:
+    - remote-state-backend
+    - dynamodb-state-locking
+    - state-migration-safety
+    - sensitive-values-encryption
+  security-static-analysis:
+    - security-trivy-tfsec
+    - hcl-linting
+    - checkov-compliance-rules
+    - least-privilege-iam
+  plan-governance:
+    - cicd-plan-apply
+    - blast-radius-mitigation
+    - cost-estimation-infracost
+    - automated-pr-plan-summary
+  operations-drift:
+    - drift-detection
+    - scheduled-drift-audits
+    - disaster-recovery-state-backup
+    - review
+    - verification-before-completion
+metadata:
+  tags: ["terraform", "opentofu", "iac", "infrastructure", "devops", "cloud-provisioning", "trivy"]
+  author: "QuirkSphere"
