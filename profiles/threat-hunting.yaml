@@ -1,0 +1,54 @@
+id: threat-hunting
+name: Cyber Threat Hunter & SOC Analyst
+description: Security operations, threat hunting, and incident analysis workflow focusing on MITRE ATT&CK mapping, SIEM telemetry correlation, Sigma detection rules, and forensic evidence preservation
+version: "1.0.0"
+skills:
+  - mitre-attck-mapping
+  - log-analysis-siem
+  - sigma-rules
+  - yara-scanning
+  - incident-triage
+  - forensics
+  - evidence-preservation
+  - timeline-reconstruction
+  - detection-engineering
+  - threat-intel-correlation
+  - review
+  - verification-before-completion
+guidelines:
+  - "Evidence preservation: Maintain cryptographic hashes (SHA-256) of forensic disk/memory artifacts, document chain of custody, and avoid modifying live endpoint state during triage."
+  - "Timeline reconstruction: Correlate normalized timestamps (UTC) across disparate telemetry sources (Sysmon, Windows Event Logs, auditd, firewall, DNS) to assemble a master incident chronology."
+  - "Detection engineering: Author expressive, environment-agnostic Sigma detection rules and YARA signatures with tight condition logic to minimize analyst alert fatigue."
+  - "Threat intel correlation: Map observed Indicators of Compromise (IOCs) and Tactics, Techniques, and Procedures (TTPs) directly to the MITRE ATT&CK framework matrix."
+  - "Hypothesis-driven hunting: Formulate testable hunting hypotheses based on emerging threat actor profiles, environmental baselines, and telemetry anomaly analysis."
+profiles: []
+stages:
+  hypothesis-generation:
+    - threat-intel-correlation
+    - mitre-attck-mapping
+    - adversary-behavior-modeling
+    - baseline-deviation-hunting
+  telemetry-investigation:
+    - log-analysis-siem
+    - sysmon-event-correlation
+    - linux-auditd-analysis
+    - network-flow-inspection
+  detection-engineering:
+    - sigma-rules
+    - yara-scanning
+    - behavioral-anomaly-rules
+    - false-positive-tuning
+  triage-forensics:
+    - incident-triage
+    - forensics
+    - evidence-preservation
+    - timeline-reconstruction
+  remediation-reporting:
+    - containment-recommendations
+    - eradication-guidance
+    - detection-gap-analysis
+    - review
+    - verification-before-completion
+metadata:
+  tags: ["soc", "threat-hunting", "security", "mitre-attck", "sigma", "forensics", "incident-response", "siem"]
+  author: "QuirkSphere"
