@@ -1,0 +1,73 @@
+id: sveltekit_vite
+name: SvelteKit & Vite Fullstack
+description: Reactive UI architecture, server-side rendering, adapter deployment, and type-safe routing with SvelteKit and Vite
+version: "1.0.0"
+category: web
+skills:
+  - svelte
+  - sveltekit
+  - vite
+  - typescript
+  - tailwind
+  - playwright
+  - vitest
+  - form-actions
+  - server-load-functions
+  - runes-reactivity
+  - adapter-deployment
+  - review
+  - verification-before-completion
+tools:
+  - vite
+  - svelte-check
+  - playwright
+  - vitest
+  - prettier-plugin-svelte
+  - tailwindcss
+best_practices:
+  - "Runes & Reactivity: Leverage Svelte 5 runes ($state, $derived, $effect) for explicit, fine-grained reactivity and predictable state lifecycles."
+  - "Server load functions: Place sensitive business logic, database queries, and private API keys in server-only load functions (+page.server.ts) rather than client modules."
+  - "Progressive enhancement: Implement standard HTML form actions with use:enhance for seamless client-side interactivity that degrades gracefully."
+  - "Layout inheritance: Structure routes with hierarchical +layout.svelte files for shared UI and persistent navigation state without layout remounting."
+  - "Type safety: Enforce type-safe page and layout props using generated ./$types imports and automated svelte-check validation."
+guidelines:
+  - "Runes & Reactivity: Leverage Svelte 5 runes ($state, $derived, $effect) for explicit, fine-grained reactivity and predictable state lifecycles."
+  - "Server load functions: Place sensitive business logic, database queries, and private API keys in server-only load functions (+page.server.ts) rather than client modules."
+  - "Progressive enhancement: Implement standard HTML form actions with use:enhance for seamless client-side interactivity that degrades gracefully."
+  - "Layout inheritance: Structure routes with hierarchical +layout.svelte files for shared UI and persistent navigation state without layout remounting."
+  - "Type safety: Enforce type-safe page and layout props using generated ./$types imports and automated svelte-check validation."
+profiles: []
+stages:
+  routing-layout:
+    - file-based-routing
+    - layout-inheritance
+    - route-parameters-matching
+    - error-boundary-handling
+  data-loading:
+    - server-load-functions
+    - universal-load-functions
+    - streaming-promises-loading
+    - cookie-session-management
+  reactivity-components:
+    - runes-reactivity
+    - reusable-svelte-components
+    - tailwind-styling
+    - accessibility-a11y-audit
+  mutations-forms:
+    - form-actions
+    - progressive-enhancement
+    - zod-schema-validation
+    - optimistic-ui-updates
+  build-deployment:
+    - vite-bundling-optimization
+    - adapter-configuration
+    - prerender-ssr-strategy
+    - svelte-check-types
+  testing-qa:
+    - vitest-unit-testing
+    - playwright-e2e-testing
+    - review
+    - verification-before-completion
+metadata:
+  tags: ["svelte", "sveltekit", "vite", "frontend", "typescript", "ssr", "tailwind", "web"]
+  author: "QuirkSphere"

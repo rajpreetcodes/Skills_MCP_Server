@@ -1,0 +1,55 @@
+{
+  "id": "sveltekit_vite",
+  "name": "SvelteKit & Vite Fullstack",
+  "description": "Reactive UI architecture, server-side rendering, adapter deployment, and type-safe routing with SvelteKit.",
+  "version": "1.0.0",
+  "category": "web",
+  "skills": [
+    "svelte",
+    "sveltekit",
+    "vite",
+    "typescript",
+    "tailwind",
+    "playwright"
+  ],
+  "tools": [
+    "vite",
+    "svelte-check",
+    "playwright",
+    "vitest",
+    "prettier-plugin-svelte",
+    "tailwindcss"
+  ],
+  "best_practices": [
+    "Runes & Reactivity: Leverage Svelte 5 runes ($state, $derived, $effect) for explicit, fine-grained reactivity and predictable state lifecycles.",
+    "Server load functions: Place sensitive business logic, database queries, and private API keys in server-only load functions (+page.server.ts) rather than client modules.",
+    "Progressive enhancement: Implement standard HTML form actions with use:enhance for seamless client-side interactivity that degrades gracefully.",
+    "Layout inheritance: Structure routes with hierarchical +layout.svelte files for shared UI and persistent navigation state without layout remounting."
+  ],
+  "stages": {
+    "routing-layout": [
+      "file-based-routing",
+      "layout-inheritance",
+      "route-parameters-matching"
+    ],
+    "data-loading": [
+      "server-load-functions",
+      "universal-load-functions",
+      "streaming-promises-loading"
+    ],
+    "mutations-forms": [
+      "form-actions",
+      "progressive-enhancement",
+      "zod-schema-validation"
+    ],
+    "testing-build": [
+      "vitest-unit-testing",
+      "playwright-e2e-testing",
+      "vite-bundling-optimization"
+    ]
+  },
+  "metadata": {
+    "tags": ["svelte", "sveltekit", "vite", "frontend", "typescript", "ssr"],
+    "author": "QuirkSphere"
+  }
+}
