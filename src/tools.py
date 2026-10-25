@@ -1,10 +1,13 @@
 """MCP Tools for the skills server."""
 import json
+import logging
 from typing import List, Optional, Dict, Any, Union
 from mcp.types import Tool, TextContent, CallToolResult, ToolAnnotations
 from .registry import SkillRegistry
 from .profile_loader import ProfileLoader
 from .models import SkillMetadata, SearchResult
+
+logger = logging.getLogger(__name__)
 
 
 class SkillsTools:
@@ -13,6 +16,9 @@ class SkillsTools:
     def __init__(self, registry: SkillRegistry, profile_loader: ProfileLoader):
         self.registry = registry
         self.profile_loader = profile_loader
+        self._last_search_query: Optional[str] = None
+        self._last_search_top_pick: Optional[str] = None
+        self.correction_log: List[Dict[str, Any]] = []
 
     def get_tools(self) -> List[Tool]:
         """Return all available MCP tools."""
@@ -260,6 +266,21 @@ class SkillsTools:
             )
 
         results = self.registry.search_skills(query, limit, offset)
+
+        near_tie = False
+        is_ambiguous = False
+        near_tie_margin = None
+        if len(results) >= 2:
+            score_diff = round(abs(results[0].score - results[1].score), 2)
+            near_tie_margin = score_diff
+            if score_diff <= 2.0:
+                near_tie = True
+                is_ambiguous = True
+
+        if results:
+            self._last_search_query = query
+            self._last_search_top_pick = results[0].skill_id
+
         result = {
             "query": query,
             "results": [
@@ -275,9 +296,18 @@ class SkillsTools:
                 for r in results
             ],
             "total_matches": len(results),
+            "near_tie": near_tie,
+            "is_ambiguous": is_ambiguous,
+            "near_tie_margin": near_tie_margin,
             "limit": limit,
             "offset": offset
         }
+        if is_ambiguous:
+            result["ambiguity_notice"] = (
+                f"Top results have near-tied relevance scores (margin: {near_tie_margin} <= 2.0). "
+                "Review descriptions carefully rather than relying solely on ranking order."
+            )
+
         return [TextContent(type="text", text=self._format_json(result))]
 
     async def _get_skill(self, args: Dict) -> Union[List[TextContent], CallToolResult]:
@@ -296,6 +326,23 @@ class SkillsTools:
                 content=[TextContent(type="text", text=f"Skill not found: {skill_id}")],
                 is_error=True
             )
+
+        # Correction log: when get_skill targets a skill different from the top search result
+        if self._last_search_query and self._last_search_top_pick:
+            matched_top = (skill.metadata.id == self._last_search_top_pick or skill.metadata.name == self._last_search_top_pick)
+            if not matched_top:
+                log_entry = {
+                    "query": self._last_search_query,
+                    "top_pick": self._last_search_top_pick,
+                    "actual_pick": skill.metadata.id
+                }
+                self.correction_log.append(log_entry)
+                logger.warning(
+                    "Search correction log: query='%s', top_pick='%s', actual_pick='%s'",
+                    self._last_search_query,
+                    self._last_search_top_pick,
+                    skill.metadata.id
+                )
 
         result = {
             "metadata": {

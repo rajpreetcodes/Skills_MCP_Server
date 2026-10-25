@@ -210,22 +210,42 @@ class SkillsHTTPServer:
         import secrets
 
         self.auth_token = self.config.get("auth_token") or os.environ.get("AUTH_TOKEN")
-        if self.config.get("transport") == "http" and not self.auth_token:
-            logger.warning("AUTH_TOKEN is not configured for HTTP transport. Authentication is disabled.")
+        self.no_auth = bool(self.config.get("no_auth", False))
+
+        is_http = self.config.get("transport") == "http"
+        if is_http and not self.auth_token and not self.no_auth:
+            raise ValueError(
+                "AUTH_TOKEN is required for HTTP transport by default. "
+                "Refusing to start unauthenticated server. "
+                "Set AUTH_TOKEN environment variable or pass --no-auth (or set no_auth: true) to explicitly allow unauthenticated access."
+            )
+
+        if not self.auth_token and self.no_auth:
+            logger.warning(
+                "CRITICAL SECURITY WARNING: HTTP transport running with authentication explicitly disabled (--no-auth). "
+                "All endpoints are unprotected."
+            )
 
         async def verify_token(request: Request):
-            if self.auth_token:
-                token = None
-                auth_header = request.headers.get("Authorization")
-                if auth_header and auth_header.startswith("Bearer "):
-                    token = auth_header[7:].strip()
-                elif "token" in request.query_params:
-                    token = request.query_params.get("token")
+            if not self.auth_token:
+                if self.no_auth:
+                    return True
+                raise HTTPException(
+                    status_code=401,
+                    detail="Authentication required: server is configured without valid credentials"
+                )
 
-                if not token:
-                    raise HTTPException(status_code=401, detail="Missing or invalid Authorization header or token query parameter")
-                if not secrets.compare_digest(token, self.auth_token):
-                    raise HTTPException(status_code=403, detail="Invalid token")
+            token = None
+            auth_header = request.headers.get("Authorization")
+            if auth_header and auth_header.startswith("Bearer "):
+                token = auth_header[7:].strip()
+            elif "token" in request.query_params:
+                token = request.query_params.get("token")
+
+            if not token:
+                raise HTTPException(status_code=401, detail="Missing or invalid Authorization header or token query parameter")
+            if not secrets.compare_digest(token, self.auth_token):
+                raise HTTPException(status_code=403, detail="Invalid token")
             return True
 
         self.auth_dependency = verify_token

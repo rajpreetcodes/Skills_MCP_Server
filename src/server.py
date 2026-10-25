@@ -150,6 +150,7 @@ def load_config(config_path: Optional[Path] = None) -> dict:
         "port": 8080,
         "log_level": "INFO",
         "auth_token": None,
+        "no_auth": False,
         "rate_limit_enabled": True,
         "rate_limit_per_minute": 60
     }
@@ -172,6 +173,7 @@ def load_config(config_path: Optional[Path] = None) -> dict:
         "PORT": "port",
         "LOG_LEVEL": "log_level",
         "AUTH_TOKEN": "auth_token",
+        "NO_AUTH": "no_auth",
         "RATE_LIMIT_ENABLED": "rate_limit_enabled",
         "RATE_LIMIT_PER_MINUTE": "rate_limit_per_minute"
     }
@@ -183,6 +185,8 @@ def load_config(config_path: Optional[Path] = None) -> dict:
                 value = int(value)
             elif config_key == "rate_limit_enabled":
                 value = str(value).lower() not in ("false", "0", "no", "off")
+            elif config_key == "no_auth":
+                value = str(value).lower() in ("true", "1", "yes", "on")
             default_config[config_key] = value
 
     return default_config
@@ -198,6 +202,7 @@ async def main():
     parser.add_argument("--transport", choices=["stdio", "http"], default=None, help="Transport mode")
     parser.add_argument("--host", default=None, help="HTTP host")
     parser.add_argument("--port", type=int, default=None, help="HTTP port")
+    parser.add_argument("--no-auth", action="store_true", default=False, help="Explicitly disable HTTP authentication (insecure)")
     args = parser.parse_args()
 
     config = load_config(args.config)
@@ -209,6 +214,8 @@ async def main():
         config["host"] = args.host
     if args.port:
         config["port"] = args.port
+    if args.no_auth:
+        config["no_auth"] = True
     if "port" not in config:
         config["port"] = 8080
 
