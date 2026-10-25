@@ -1,0 +1,70 @@
+id: pytorch_deeplearning
+name: PyTorch & Deep Learning Fine-Tuning
+description: Model training, LoRA/PEFT parameter-efficient fine-tuning, evaluation metrics, and GPU acceleration workflows
+version: "1.0.0"
+category: ai
+skills:
+  - pytorch
+  - torchvision
+  - transformers
+  - peft
+  - accelerate
+  - bitsandbytes
+  - tensorboard
+  - dataset-validation
+  - mixed-precision-training
+  - gradient-checkpointing
+  - review
+  - verification-before-completion
+tools:
+  - pytorch
+  - accelerate
+  - tensorboard
+  - deepspeed
+  - wandb
+  - triton
+best_practices:
+  - "Mixed precision training: Use torch.cuda.amp.autocast with fp16 or bf16 to reduce VRAM memory consumption and accelerate compute throughput."
+  - "Gradient checkpointing: Enable gradient checkpointing on transformer backbones to trade minor compute overhead for substantial memory savings."
+  - "Validation loss early stopping: Monitor validation loss with patience counters and checkpoint saving to prevent overfitting."
+  - "Reproducible random seeding: Explicitly seed torch.manual_seed, np.random.seed, and deterministic CUDA flags for reproducible experiment outcomes."
+  - "PEFT and quantization: Utilize 4-bit or 8-bit quantization with bitsandbytes combined with LoRA target modules for parameter-efficient adaptation."
+guidelines:
+  - "Mixed precision training: Use torch.cuda.amp.autocast with fp16 or bf16 to reduce VRAM memory consumption and accelerate compute throughput."
+  - "Gradient checkpointing: Enable gradient checkpointing on transformer backbones to trade minor compute overhead for substantial memory savings."
+  - "Validation loss early stopping: Monitor validation loss with patience counters and checkpoint saving to prevent overfitting."
+  - "Reproducible random seeding: Explicitly seed torch.manual_seed, np.random.seed, and deterministic CUDA flags for reproducible experiment outcomes."
+  - "PEFT and quantization: Utilize 4-bit or 8-bit quantization with bitsandbytes combined with LoRA target modules for parameter-efficient adaptation."
+profiles: []
+stages:
+  dataset-preprocessing:
+    - dataset-tokenization-collation
+    - dynamic-padding-batching
+    - stratified-train-val-splits
+    - data-loader-pin-memory
+  model-preparation:
+    - pretrained-model-loading
+    - bitsandbytes-quantization
+    - peft-lora-configuration
+    - target-modules-selection
+  training-optimization:
+    - mixed-precision-training
+    - gradient-accumulation
+    - gradient-checkpointing
+    - cosine-lr-scheduling
+    - early-stopping-regularization
+  evaluation-metrics:
+    - loss-perplexity-tracking
+    - tensorboard-monitoring
+    - benchmark-evaluation-suite
+    - checkpoint-best-model-saving
+  inference-verification:
+    - model-export-safetensors
+    - latency-profiling
+    - generation-sampling-tuning
+    - memory-footprint-benchmark
+    - review
+    - verification-before-completion
+metadata:
+  tags: ["pytorch", "deep-learning", "fine-tuning", "lora", "transformers", "ai", "peft"]
+  author: "QuirkSphere"

@@ -1,0 +1,56 @@
+{
+  "id": "pytorch_deeplearning",
+  "name": "PyTorch & Deep Learning Fine-Tuning",
+  "description": "Model training, LoRA/PEFT parameter-efficient fine-tuning, evaluation metrics, and GPU acceleration workflows.",
+  "version": "1.0.0",
+  "category": "ai",
+  "skills": [
+    "pytorch",
+    "torchvision",
+    "transformers",
+    "peft",
+    "accelerate",
+    "bitsandbytes",
+    "tensorboard"
+  ],
+  "tools": [
+    "pytorch",
+    "accelerate",
+    "tensorboard",
+    "deepspeed",
+    "wandb"
+  ],
+  "best_practices": [
+    "Mixed precision training: Use torch.cuda.amp.autocast with fp16 or bf16 to reduce VRAM consumption and boost compute.",
+    "Gradient checkpointing: Trade minor compute for substantial memory savings on deep transformer layers.",
+    "Validation loss early stopping: Track validation metrics with early stopping to prevent overfitting.",
+    "Reproducible random seeding: Explicitly seed torch and numpy generators for deterministic results.",
+    "Parameter-efficient fine-tuning: Combine 4-bit quantization with LoRA adapters for efficient resource utilization."
+  ],
+  "stages": {
+    "dataset-preprocessing": [
+      "dataset-tokenization-collation",
+      "dynamic-padding-batching",
+      "stratified-train-val-splits"
+    ],
+    "model-preparation": [
+      "pretrained-model-loading",
+      "bitsandbytes-quantization",
+      "peft-lora-configuration"
+    ],
+    "training-optimization": [
+      "mixed-precision-training",
+      "gradient-accumulation",
+      "gradient-checkpointing"
+    ],
+    "evaluation-metrics": [
+      "loss-perplexity-tracking",
+      "tensorboard-monitoring",
+      "checkpoint-best-model-saving"
+    ]
+  },
+  "metadata": {
+    "tags": ["pytorch", "deep-learning", "fine-tuning", "lora", "transformers", "ai"],
+    "author": "QuirkSphere"
+  }
+}
