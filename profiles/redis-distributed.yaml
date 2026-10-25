@@ -1,0 +1,72 @@
+id: redis_distributed
+name: Redis Caching & Distributed Systems
+description: High-throughput caching architectures, pub/sub messaging, rate limiting, and distributed locking
+version: "1.0.0"
+category: systems
+skills:
+  - redis
+  - valkey
+  - redlock
+  - pubsub
+  - streams
+  - lua-scripting
+  - cache-invalidation
+  - connection-pooling
+  - redis-cluster
+  - sentinel-failover
+  - rate-limiting
+  - cache-stampede-mitigation
+  - review
+  - verification-before-completion
+tools:
+  - redis-cli
+  - redis-insight
+  - redis-benchmark
+  - valkey-cli
+best_practices:
+  - "Cache stampede mitigation: Use probabilistic early expiration (XFetch algorithm), mutex locking, or background cache warmers to prevent simultaneous misses."
+  - "Key naming and TTL: Use consistent hierarchical namespaces with colons (e.g., service:entity:id), and always define explicit TTL expiration to avoid unbounded memory growth."
+  - "Atomic updates with Lua: Encapsulate multi-step read-modify-write workflows into Lua scripts or Redis Functions for atomic execution without race conditions."
+  - "Distributed locking: Implement Redlock or monotonic lock tokens with strict TTL and release verification via compare-and-delete Lua scripts."
+  - "Eviction policies: Align maxmemory-policy (volatile-lru, allkeys-lru, volatile-lfu) with data criticality and access patterns."
+  - "Connection management: Use robust connection pooling with socket timeouts, retry with exponential backoff, and circuit breakers."
+guidelines:
+  - "Cache stampede mitigation: Use probabilistic early expiration (XFetch algorithm), mutex locking, or background cache warmers to prevent simultaneous misses."
+  - "Key naming and TTL: Use consistent hierarchical namespaces with colons (e.g., service:entity:id), and always define explicit TTL expiration to avoid unbounded memory growth."
+  - "Atomic updates with Lua: Encapsulate multi-step read-modify-write workflows into Lua scripts or Redis Functions for atomic execution without race conditions."
+  - "Distributed locking: Implement Redlock or monotonic lock tokens with strict TTL and release verification via compare-and-delete Lua scripts."
+  - "Eviction policies: Align maxmemory-policy (volatile-lru, allkeys-lru, volatile-lfu) with data criticality and access patterns."
+  - "Connection management: Use robust connection pooling with socket timeouts, retry with exponential backoff, and circuit breakers."
+profiles: []
+stages:
+  caching-strategy:
+    - cache-aside-pattern
+    - key-namespace-design
+    - ttl-expiration-policy
+    - cache-stampede-mitigation
+    - eviction-policy-tuning
+  distributed-primitives:
+    - distributed-locking-redlock
+    - atomic-lua-scripts
+    - rate-limiter-token-bucket
+    - idempotency-key-storage
+  messaging-events:
+    - redis-pubsub-broadcasting
+    - redis-streams-consumer-groups
+    - stream-ack-pel-processing
+    - dead-letter-stream-handling
+  cluster-reliability:
+    - redis-cluster-hashslot-sharding
+    - sentinel-quorum-failover
+    - persistence-rdb-aof
+    - replication-backlog-tuning
+  observability-hardening:
+    - slowlog-inspection
+    - memory-fragmentation-audit
+    - acl-user-permissions
+    - tls-encryption-transport
+    - review
+    - verification-before-completion
+metadata:
+  tags: ["redis", "caching", "distributed-systems", "streams", "pubsub", "redlock", "lua", "valkey"]
+  author: "QuirkSphere"
