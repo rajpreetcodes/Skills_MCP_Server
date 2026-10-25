@@ -1,0 +1,50 @@
+id: pytorch-deeplearning
+name: PyTorch & Deep Learning Fine-Tuning
+description: Model training, LoRA/PEFT parameter-efficient fine-tuning, evaluation metrics, and GPU acceleration workflows.
+version: "1.0.0"
+skills:
+  - pytorch
+  - torchvision
+  - transformers
+  - peft
+  - accelerate
+  - bitsandbytes
+  - tensorboard
+  - verification-before-completion
+guidelines:
+  - "Mixed precision: Train with torch.autocast in fp16 (with GradScaler) or bf16 on supported GPUs to cut memory use and speed up training."
+  - "Gradient checkpointing: Enable gradient checkpointing to trade extra compute for lower activation memory when fitting larger models."
+  - "Early stopping: Monitor validation loss each epoch, keep the best checkpoint, and stop when it stops improving."
+  - "Reproducibility: Seed Python, NumPy and PyTorch (torch.manual_seed), log the seed and library versions, and document any nondeterministic ops."
+  - "Parameter-efficient fine-tuning: Prefer LoRA adapters via peft, optionally on a 4-bit or 8-bit base model loaded with bitsandbytes (QLoRA), instead of full fine-tuning."
+  - "Profiling before tuning: Profile with torch.profiler and check GPU memory use before changing batch size or model code."
+  - "Experiment tracking: Log losses, metrics and hyperparameters to TensorBoard and save checkpoints with optimizer and scheduler state."
+profiles: []
+stages:
+  setup:
+    - reproducible-random-seeding
+    - dataset-dataloader-pipeline
+    - pretrained-model-tokenizer-loading
+    - gpu-device-placement-accelerate
+  training:
+    - training-loop-optimizer-scheduler
+    - mixed-precision-fp16-bf16
+    - gradient-accumulation-clipping
+    - gradient-checkpointing
+    - lora-peft-adapters
+    - quantized-qlora-bitsandbytes
+    - tensorboard-experiment-logging
+  evaluation:
+    - validation-loss-early-stopping
+    - task-evaluation-metrics
+    - checkpoint-selection-resume
+    - overfitting-underfitting-diagnosis
+  optimization:
+    - torch-profiler-bottleneck-analysis
+    - gpu-memory-usage-analysis
+    - dataloader-throughput-tuning
+    - multi-gpu-distributed-training
+    - verification-before-completion
+metadata:
+  tags: ["ai", "pytorch", "deep-learning", "fine-tuning", "peft", "lora", "gpu"]
+  author: "QuirkSphere"
