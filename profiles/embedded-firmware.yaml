@@ -1,0 +1,54 @@
+id: embedded-firmware
+name: Embedded Systems & Firmware Engineer
+description: Production-grade embedded firmware engineering workflow for bare-metal microcontrollers and RTOS environments covering HAL drivers, deterministic concurrency, peripheral buses, and low-level debugging
+version: "1.0.0"
+skills:
+  - bare-metal-c
+  - hal-drivers
+  - freertos-concurrency
+  - memory-constrained-design
+  - jtag-gdb-debugging
+  - peripheral-buses
+  - register-level-access
+  - watchdog-timers
+  - interrupt-safety
+  - dma-transfers
+  - review
+  - verification-before-completion
+guidelines:
+  - "Interrupt safety: Keep Interrupt Service Routines (ISRs) minimal, avoid blocking calls or dynamic memory allocation inside ISRs, and mark shared volatile flags with atomic access."
+  - "Deterministic execution: Use predictable scheduling in FreeRTOS, avoiding priority inversion via mutexes with priority inheritance, and enforce strict execution deadlines."
+  - "Watchdog timers: Configure independent hardware watchdog timers with appropriate timeout windows to recover from firmware stalls and lockups."
+  - "Register-level hardware abstraction: Structure peripheral drivers using typed CMSIS register structures and clean Hardware Abstraction Layer (HAL) separation."
+  - "Memory-constrained design: Avoid dynamic heap allocation (malloc/free) in production firmware; prefer static memory pools and verify stack boundary margins."
+profiles: []
+stages:
+  hardware-abstraction:
+    - register-level-access
+    - hal-drivers
+    - clock-tree-initialization
+    - peripheral-buses
+  concurrency-rtos:
+    - freertos-concurrency
+    - interrupt-safety
+    - task-synchronization-queues
+    - deterministic-execution
+  resource-management:
+    - memory-constrained-design
+    - static-allocation-pools
+    - stack-overflow-protection
+    - low-power-modes
+  debugging-trace:
+    - jtag-gdb-debugging
+    - openocd-target-flashing
+    - serial-uart-logging
+    - watchdog-timers
+  verification-testing:
+    - host-side-unit-testing
+    - ceedling-unity-mocks
+    - static-analysis-misra
+    - review
+    - verification-before-completion
+metadata:
+  tags: ["embedded", "firmware", "c", "freertos", "microcontroller", "arm-cortex", "hal", "jtag"]
+  author: "QuirkSphere"
