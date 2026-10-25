@@ -1,0 +1,55 @@
+{
+  "id": "rust_wasm",
+  "name": "Rust & WebAssembly",
+  "description": "Curated toolsets, best practices, and compiler diagnostics for Rust systems development and Wasm targets.",
+  "version": "1.0.0",
+  "category": "systems",
+  "skills": [
+    "cargo",
+    "clippy",
+    "rustfmt",
+    "miri",
+    "wasm-pack",
+    "tokio",
+    "tracing"
+  ],
+  "tools": [
+    "cargo",
+    "clippy",
+    "wasm-pack",
+    "wasm-bindgen-cli",
+    "miri"
+  ],
+  "best_practices": [
+    "Ownership idioms: Leverage borrow checker semantics and minimize cloning.",
+    "Error handling with thiserror/anyhow: Maintain type safety and contextual error tracing.",
+    "WASM compatibility: Guard native platform dependencies with conditional compilation flags.",
+    "Safe concurrency: Employ async Tokio channels instead of shared locks."
+  ],
+  "stages": {
+    "system-architecture": [
+      "trait-api-design",
+      "ownership-lifetimes-modeling",
+      "error-handling-thiserror"
+    ],
+    "wasm-compilation": [
+      "wasm-pack-build-pipeline",
+      "wasm-bindgen-interop",
+      "web-sys-dom-bindings"
+    ],
+    "concurrency-runtime": [
+      "tokio-async-runtime",
+      "channel-message-passing",
+      "tracing-structured-logging"
+    ],
+    "quality-diagnostics": [
+      "clippy-lint-enforcement",
+      "miri-soundness-validation",
+      "cargo-test-suites"
+    ]
+  },
+  "metadata": {
+    "tags": ["rust", "wasm", "webassembly", "systems-programming", "tokio", "clippy"],
+    "author": "QuirkSphere"
+  }
+}

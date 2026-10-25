@@ -1,0 +1,64 @@
+id: rust_wasm
+name: Rust & WebAssembly
+description: Curated toolsets, best practices, and compiler diagnostics for Rust systems development and Wasm targets
+version: "1.0.0"
+category: systems
+skills:
+  - cargo
+  - clippy
+  - rustfmt
+  - miri
+  - wasm-pack
+  - wasm-bindgen
+  - tokio
+  - tracing
+  - thiserror
+  - review
+  - verification-before-completion
+tools:
+  - cargo
+  - clippy
+  - wasm-pack
+  - wasm-bindgen-cli
+  - miri
+  - cargo-audit
+  - wasm-opt
+best_practices:
+  - "Ownership idioms: Embrace borrow checker semantics, minimizing Rc/Arc clones and avoiding unsafe pointer dereferencing."
+  - "Robust error handling: Utilize thiserror for expressive domain library errors and anyhow for contextual application handling."
+  - "WASM compatibility: Guard against target-incompatible native syscalls using conditional compilation (#[cfg(target_arch = 'wasm32')])."
+  - "Safe concurrency: Utilize Tokio task channels and async message-passing primitives instead of shared mutable state."
+  - "Strict compiler diagnostics: Enforce Clippy pedantic lints and zero-warning build policies across both native and Wasm compilation targets."
+guidelines:
+  - "Ownership idioms: Embrace borrow checker semantics, minimizing Rc/Arc clones and avoiding unsafe pointer dereferencing."
+  - "Robust error handling: Utilize thiserror for expressive domain library errors and anyhow for contextual application handling."
+  - "WASM compatibility: Guard against target-incompatible native syscalls using conditional compilation (#[cfg(target_arch = 'wasm32')])."
+  - "Safe concurrency: Utilize Tokio task channels and async message-passing primitives instead of shared mutable state."
+  - "Strict compiler diagnostics: Enforce Clippy pedantic lints and zero-warning build policies across both native and Wasm compilation targets."
+profiles: []
+stages:
+  system-architecture:
+    - trait-api-design
+    - ownership-lifetimes-modeling
+    - error-handling-thiserror
+    - modular-crate-structure
+  wasm-compilation:
+    - wasm-pack-build-pipeline
+    - wasm-bindgen-interop
+    - web-sys-dom-bindings
+    - wasm-opt-size-reduction
+  concurrency-runtime:
+    - tokio-async-runtime
+    - channel-message-passing
+    - tracing-structured-logging
+    - cancellation-token-handling
+  quality-diagnostics:
+    - clippy-lint-enforcement
+    - miri-soundness-validation
+    - cargo-test-suites
+    - cargo-audit-vulnerabilities
+    - review
+    - verification-before-completion
+metadata:
+  tags: ["rust", "wasm", "webassembly", "systems-programming", "tokio", "clippy", "miri"]
+  author: "QuirkSphere"
