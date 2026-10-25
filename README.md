@@ -81,7 +81,7 @@ There are three ways to configure your skills path:
 
 ## Client Setup
 
-### Cline & Roo Code Setup
+### 1. Cline & Roo Code Setup
 
 Cline and Roo Code can launch the server over MCP STDIO from their shared
 `cline_mcp_settings.json` configuration. Clone the repository, install its
@@ -305,11 +305,19 @@ If running the standalone HTTP server (`python -m src.server --transport http --
 {
   "mcpServers": {
     "skills": {
-      "serverUrl": "http://localhost:8080/mcp/sse"
+      "serverUrl": "http://localhost:8080/mcp/sse",
+      "headers": {
+        "Authorization": "Bearer YOUR_SECRET_AUTH_TOKEN"
+      }
     }
   }
 }
 ```
+
+> **Safe Secret Handling in Windsurf:**
+> - Never commit raw `Authorization` tokens to git repositories or share your `mcp_config.json` containing secrets.
+> - When running locally, STDIO mode is recommended because communication occurs over standard I/O streams without exposing network ports.
+> - If using HTTP transport with `AUTH_TOKEN` enabled, ensure the token is kept confidential and matches your server's `AUTH_TOKEN` environment variable. Alternatively, append `?token=<secret>` if your MCP client does not support custom connection headers.
 
 #### Reload & Verify Connection
 1. Save `mcp_config.json`.
@@ -409,16 +417,21 @@ Do **not** overwrite your existing `settings.json`. Instead, add or merge the `"
 
 #### Remote HTTP / SSE Option in Zed
 
-If running the standalone HTTP/SSE server:
+If running the standalone HTTP/SSE server with authentication:
 ```json
 {
   "context_servers": {
     "skills": {
-      "url": "http://localhost:8080/mcp/sse"
+      "url": "http://localhost:8080/mcp/sse?token=YOUR_SECRET_AUTH_TOKEN"
     }
   }
 }
 ```
+
+> **Safe Secret Handling in Zed:**
+> - Avoid committing `~/.config/zed/settings.json` to public dotfile repositories if it contains query tokens or private keys.
+> - For local development, prefer STDIO mode which uses direct process communication and requires no network tokens or port exposure.
+> - Ensure `AUTH_TOKEN` is kept confidential and matches the server's runtime configuration.
 
 #### Reload & Verify Connection
 1. Save `settings.json` (Zed automatically hot-reloads configuration files upon saving).
