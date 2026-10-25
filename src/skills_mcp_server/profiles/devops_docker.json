@@ -1,0 +1,56 @@
+{
+  "id": "devops_docker",
+  "name": "DevOps & Docker Containerization",
+  "description": "Container packaging, multi-stage Docker builds, image hardening, and container orchestration workflows.",
+  "version": "1.0.0",
+  "category": "devops",
+  "skills": [
+    "docker",
+    "docker-compose",
+    "hadolint",
+    "trivy",
+    "kaniko",
+    "buildx"
+  ],
+  "tools": [
+    "docker",
+    "docker-compose",
+    "hadolint",
+    "trivy",
+    "syft",
+    "cosign"
+  ],
+  "best_practices": [
+    "Non-root user execution: Explicitly define USER with a non-zero UID/GID to prevent container privilege escalation.",
+    "Multi-stage builds: Separate build dependencies from runtime binaries to minimize final image attack surface.",
+    "Layer caching: Structure Dockerfiles so frequently modified layers are at the end.",
+    "Pinned base image hashes: Always pin base images with immutable SHA-256 digests.",
+    "Vulnerability scanning: Integrate Hadolint and Trivy automated checks in CI."
+  ],
+  "stages": {
+    "dockerfile-design": [
+      "multi-stage-builds",
+      "minimal-base-selection",
+      "dockerignore-optimization"
+    ],
+    "security-hardening": [
+      "non-root-execution",
+      "read-only-root-filesystem",
+      "capabilities-dropping"
+    ],
+    "vulnerability-scanning": [
+      "hadolint-static-analysis",
+      "trivy-vulnerability-scan",
+      "base-image-digest-pinning"
+    ],
+    "orchestration-compose": [
+      "compose-service-definition",
+      "container-healthcheck-probes",
+      "resource-limits-cpu-memory"
+    ]
+  },
+  "metadata": {
+    "tags": ["devops", "docker", "containers", "security", "hadolint", "trivy"],
+    "author": "QuirkSphere"
+  }
+}

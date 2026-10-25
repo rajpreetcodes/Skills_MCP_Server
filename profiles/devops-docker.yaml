@@ -1,0 +1,67 @@
+id: devops_docker
+name: DevOps & Docker Containerization
+description: Container packaging, multi-stage Docker builds, image hardening, and container orchestration workflows
+version: "1.0.0"
+category: devops
+skills:
+  - docker
+  - docker-compose
+  - hadolint
+  - trivy
+  - kaniko
+  - buildx
+  - multi-stage-builds
+  - non-root-containers
+  - layer-caching
+  - review
+  - verification-before-completion
+tools:
+  - docker
+  - docker-compose
+  - hadolint
+  - trivy
+  - syft
+  - cosign
+best_practices:
+  - "Non-root user execution: Explicitly define USER with a non-zero UID/GID (e.g. USER 10001:10001) to prevent container escape escalations."
+  - "Multi-stage builds: Separate build environments from runtime artifacts to produce lean, attack-surface minimized production images."
+  - "Layer caching & order: Place frequently changing files (e.g. application code) towards the bottom of Dockerfiles to maximize layer cache hits."
+  - "Pinned base image digests: Pin base images using immutable SHA-256 digests (e.g. alpine@sha256:...) instead of volatile tags."
+  - "Automated vulnerability scanning: Integrate Hadolint for Dockerfile linting and Trivy for container image CVE scanning in CI pipelines."
+guidelines:
+  - "Non-root user execution: Explicitly define USER with a non-zero UID/GID (e.g. USER 10001:10001) to prevent container escape escalations."
+  - "Multi-stage builds: Separate build environments from runtime artifacts to produce lean, attack-surface minimized production images."
+  - "Layer caching & order: Place frequently changing files (e.g. application code) towards the bottom of Dockerfiles to maximize layer cache hits."
+  - "Pinned base image digests: Pin base images using immutable SHA-256 digests (e.g. alpine@sha256:...) instead of volatile tags."
+  - "Automated vulnerability scanning: Integrate Hadolint for Dockerfile linting and Trivy for container image CVE scanning in CI pipelines."
+profiles: []
+stages:
+  dockerfile-design:
+    - multi-stage-builds
+    - minimal-base-selection
+    - dockerignore-optimization
+    - layer-cache-ordering
+  security-hardening:
+    - non-root-execution
+    - read-only-root-filesystem
+    - capabilities-dropping
+    - buildkit-secret-mounting
+  vulnerability-scanning:
+    - hadolint-static-analysis
+    - trivy-vulnerability-scan
+    - sbom-generation-syft
+    - base-image-digest-pinning
+  orchestration-compose:
+    - compose-service-definition
+    - container-healthcheck-probes
+    - resource-limits-cpu-memory
+    - restart-policy-tuning
+  ci-automation:
+    - buildx-multi-arch-compilation
+    - registry-push-caching
+    - cosign-image-signing
+    - review
+    - verification-before-completion
+metadata:
+  tags: ["devops", "docker", "containers", "security", "hadolint", "trivy", "buildx"]
+  author: "QuirkSphere"
