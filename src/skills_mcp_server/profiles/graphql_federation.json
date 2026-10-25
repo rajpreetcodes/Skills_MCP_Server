@@ -1,0 +1,53 @@
+{
+  "id": "graphql_federation",
+  "name": "GraphQL & Apollo Federation",
+  "description": "Curated toolsets and architectural guidelines for GraphQL schema design, subgraph composition, and query optimization.",
+  "version": "1.0.0",
+  "category": "web",
+  "skills": [
+    "graphql",
+    "apollo-server",
+    "apollo-router",
+    "graphql-codegen",
+    "dataloader",
+    "schema-stitching"
+  ],
+  "tools": [
+    "apollo-rover-cli",
+    "graphql-codegen",
+    "apollo-router",
+    "graphql-inspector"
+  ],
+  "best_practices": [
+    "Resolver batching via DataLoader: Wrap queries in DataLoader to mitigate N+1 roundtrips.",
+    "Subgraph entity key design: Define minimal @key directives for clean subgraph entity resolution.",
+    "Query depth limits: Enforce query complexity and depth limits to protect against DoS.",
+    "Schema governance: Automate breaking change checks with Rover and GraphQL Inspector."
+  ],
+  "stages": {
+    "schema-design": [
+      "schema-definition-language",
+      "entity-key-definition",
+      "shareable-fields-directive"
+    ],
+    "resolver-optimization": [
+      "dataloader-batching",
+      "n-plus-one-mitigation",
+      "field-level-authorization"
+    ],
+    "federation-composition": [
+      "rover-subgraph-linting",
+      "router-supergraph-composition",
+      "federated-query-planning"
+    ],
+    "security-governance": [
+      "query-depth-limiting",
+      "cost-complexity-analysis",
+      "introspection-production-hardening"
+    ]
+  },
+  "metadata": {
+    "tags": ["graphql", "apollo", "federation", "api", "subgraphs"],
+    "author": "QuirkSphere"
+  }
+}

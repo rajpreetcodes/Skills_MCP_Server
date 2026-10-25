@@ -1,0 +1,66 @@
+id: graphql_federation
+name: GraphQL & Apollo Federation
+description: Curated toolsets and architectural guidelines for GraphQL schema design, subgraph composition, and query optimization
+version: "1.0.0"
+category: web
+skills:
+  - graphql
+  - apollo-server
+  - apollo-router
+  - graphql-codegen
+  - dataloader
+  - schema-stitching
+  - federation-entities
+  - query-complexity-limiting
+  - n-plus-one-mitigation
+  - review
+  - verification-before-completion
+tools:
+  - apollo-rover-cli
+  - graphql-codegen
+  - apollo-router
+  - graphql-inspector
+  - postman-graphql
+best_practices:
+  - "Resolver batching via DataLoader: Wrap repeated database queries and downstream HTTP calls in DataLoader instances to eliminate N+1 roundtrips."
+  - "Subgraph entity key design: Define deterministic, minimal @key(fields: '...') directives on federated entities for cross-subgraph resolution."
+  - "Query depth and complexity limits: Enforce AST depth validation and cost calculation middleware to prevent denial-of-service from malicious nested queries."
+  - "Schema governance: Use Apollo Rover CLI in CI to validate subgraph schemas and catch composition breaking changes before deployment."
+  - "Field-level authorization: Implement granular authorization checks inside resolver contexts rather than trusting client-supplied identifiers."
+guidelines:
+  - "Resolver batching via DataLoader: Wrap repeated database queries and downstream HTTP calls in DataLoader instances to eliminate N+1 roundtrips."
+  - "Subgraph entity key design: Define deterministic, minimal @key(fields: '...') directives on federated entities for cross-subgraph resolution."
+  - "Query depth and complexity limits: Enforce AST depth validation and cost calculation middleware to prevent denial-of-service from malicious nested queries."
+  - "Schema governance: Use Apollo Rover CLI in CI to validate subgraph schemas and catch composition breaking changes before deployment."
+  - "Field-level authorization: Implement granular authorization checks inside resolver contexts rather than trusting client-supplied identifiers."
+profiles: []
+stages:
+  schema-design:
+    - schema-definition-language
+    - entity-key-definition
+    - shareable-fields-directive
+    - input-types-validation
+  resolver-optimization:
+    - dataloader-batching
+    - n-plus-one-mitigation
+    - field-level-authorization
+    - custom-scalar-serialization
+  federation-composition:
+    - rover-subgraph-linting
+    - router-supergraph-composition
+    - federated-query-planning
+    - entity-resolver-references
+  security-governance:
+    - query-depth-limiting
+    - cost-complexity-analysis
+    - introspection-production-hardening
+    - rate-limiting-ip-client
+  testing-verification:
+    - subgraph-integration-testing
+    - schema-diff-breaking-checks
+    - mock-federated-gateway-testing
+    - review
+    - verification-before-completion
+metadata:
+  tags: ["graphql", "apollo", "federation", "api", "subgraphs", "dataloader", "web"]
+  author: "QuirkSphere"
