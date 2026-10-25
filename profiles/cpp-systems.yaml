@@ -1,0 +1,54 @@
+id: cpp-systems
+name: Modern C++ Systems Programmer
+description: High-performance modern C++20 systems engineering workflow emphasizing concepts, RAII resource management, memory safety sanitizers, and low-latency architectures
+version: "1.0.0"
+skills:
+  - cpp20-concepts
+  - raii-smart-pointers
+  - cmake-build
+  - sanitizers-asan-tsan
+  - valgrind
+  - gtest
+  - ranges-pipeline
+  - coroutines
+  - std-format
+  - cache-friendly-data-structures
+  - review
+  - verification-before-completion
+guidelines:
+  - "Zero-overhead abstractions: Leverage compile-time evaluation (constexpr, consteval) and C++20 concepts to eliminate runtime dispatch costs without sacrificing type safety."
+  - "Cache-friendly data structures: Prefer contiguous memory layouts (std::vector, std::array) and structure-of-arrays layouts over linked pointer chains to maximize CPU cache line efficiency."
+  - "Undefined behavior avoidance: Compile with strict warning flags (-Wall -Wextra -Wpedantic -Werror) and regularly audit code with AddressSanitizer (ASan) and UndefinedBehaviorSanitizer (UBSan)."
+  - "RAII and ownership: Adhere strictly to Resource Acquisition Is Initialization (RAII) using smart pointers (std::unique_ptr, std::shared_ptr) to guarantee deterministic resource destruction."
+  - "Concurrency safety: Use ThreadSanitizer (TSan) to detect data races in multithreaded logic, and prefer lock-free atomics (std::atomic) or structured task parallelism."
+profiles: []
+stages:
+  cxx20-core-design:
+    - cpp20-concepts
+    - constexpr-metaprogramming
+    - ranges-pipeline
+    - three-way-comparison-spaceship
+  memory-ownership:
+    - raii-smart-pointers
+    - move-semantics-rule-of-five
+    - custom-allocators
+    - cache-friendly-data-structures
+  build-configuration:
+    - cmake-build
+    - target-based-modern-cmake
+    - compiler-warnings-enforcement
+    - clang-tidy-analysis
+  sanitizers-debugging:
+    - sanitizers-asan-tsan
+    - valgrind-memory-checks
+    - gdb-lldb-debugging
+    - core-dump-analysis
+  testing-benchmarking:
+    - gtest-unit-testing
+    - google-benchmark-latency
+    - perf-cache-profiling
+    - review
+    - verification-before-completion
+metadata:
+  tags: ["cpp", "cpp20", "systems-programming", "cmake", "low-latency", "sanitizers", "raii", "gtest"]
+  author: "QuirkSphere"
